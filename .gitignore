@@ -1,0 +1,77 @@
+# =========================
+# Agent / AI
+# =========================
+.agent/
+.gemini/
+
+# =========================
+# Go
+# =========================
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+go.work.sum
+
+# =========================
+# Node / React
+# =========================
+node_modules/
+dist/
+build/
+.next/
+*.tsbuildinfo
+.env
+.env.local
+.env.*.local
+
+# =========================
+# Terraform
+# =========================
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# =========================
+# Docker
+# =========================
+docker-compose.override.yml
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# =========================
+# Logs
+# =========================
+*.log
+logs/
+
+# =========================
+# Secrets (never commit)
+# =========================
+*.pem
+*.key
+*.crt
+*.env
+secrets/
