@@ -1,8 +1,8 @@
-# 03 — Core Domain Services (Browse Path)
+# 03: Core Domain Services (Browse Path)
 
 ## Goal
 
-Deliver the four services that power browse + cart: User, Product, Pricing, Cart. End state: a customer can sign up, browse the catalog, search, get a price, add to cart — all through Kong, all observable, all behind contracts.
+Deliver the four services that power browse + cart: User, Product, Pricing, Cart. End state: a customer can sign up, browse the catalog, search, get a price, add to cart. All through Kong, all observable, all behind contracts.
 
 ## Scope
 
@@ -28,12 +28,12 @@ Deliver the four services that power browse + cart: User, Product, Pricing, Cart
 - [ ] Every service appears on the Service Health Grafana dashboard with non-zero traffic
 - [ ] Per-service OpenAPI spec + generated TS client lands in `packages/api-client-ts`
 - [ ] Contract tests run in CI for each service
-- [ ] Zero per-service code duplication for HTTP/DB plumbing — every service uses `pkg/httpserver`, `pkg/db`
+- [ ] Zero per-service code duplication for HTTP/DB plumbing. Every service uses `pkg/httpserver`, `pkg/db`
 
 ## Risks
 
-- Product Service catalog import (bulk) is unbounded — set a hard cap and stream from S3/GCS to avoid OOMing.
-- Cart merge on login (anonymous → authenticated) is a classic edge-case farm; cover with explicit tests.
+- Product Service catalog import (bulk) is unbounded. Set a hard cap and stream from S3/GCS to avoid OOMing.
+- Cart merge on login (anonymous → authenticated) is a classic edge-case farm. Cover with explicit tests.
 
 ## References
 

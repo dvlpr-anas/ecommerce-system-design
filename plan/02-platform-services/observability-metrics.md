@@ -1,4 +1,4 @@
-# Observability — Metrics
+# Observability, Metrics
 
 ## Purpose
 
@@ -11,8 +11,8 @@ Every service exposes `/metrics` (Prometheus format). Prometheus Operator scrape
 
 ## Tasks
 
-1. [ ] Install kube-prometheus-stack via Helm into `observability` (Prometheus Operator + Alertmanager + Grafana) — effort: M
-2. [ ] Author a `ServiceMonitor` template under `k8s-manifests/base/observability/servicemonitor.yaml` referenced by every service — effort: S
+1. [ ] Install kube-prometheus-stack via Helm into `observability` (Prometheus Operator + Alertmanager + Grafana) (effort: M)
+2. [ ] Author a `ServiceMonitor` template under `k8s-manifests/base/observability/servicemonitor.yaml` referenced by every service (effort: S)
 3. [ ] Verify each of the seven standard metrics emits correctly from a hello-world service:
    - `http_requests_total` (counter, labels: service, method, path, status)
    - `http_request_duration_seconds` (histogram)
@@ -21,10 +21,10 @@ Every service exposes `/metrics` (Prometheus format). Prometheus Operator scrape
    - `circuit_breaker_state` (gauge, 0/1/2)
    - `outbox_pending_count` (gauge, labels: service)
    - `db_pool_active_connections` (gauge)
-   — effort: M
-4. [ ] Configure Alertmanager routes: Slack `#alerts-platform` + PagerDuty for SEV-1 — effort: M
-5. [ ] Retention: 15d in Prometheus; long-term storage via Thanos or Mimir deferred to phase 06 — effort: S
-6. [ ] Add `PodMonitor` for Kafka consumer pods (sidecar exporters where needed) — effort: M
+ (effort: M)
+4. [ ] Configure Alertmanager routes: Slack `#alerts-platform` + PagerDuty for SEV-1 (effort: M)
+5. [ ] Retention: 15d in Prometheus. Long-term storage via Thanos or Mimir deferred to phase 06 (effort: S)
+6. [ ] Add `PodMonitor` for Kafka consumer pods (sidecar exporters where needed) (effort: M)
 
 ## Deliverables
 

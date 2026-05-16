@@ -11,12 +11,12 @@ Codify the patterns every browse-path service applies on top of `pkg/*`: contrac
 
 ## Tasks
 
-1. [ ] Contract test harness: a small Go library `services/internal/contracttest/` that boots the service in-process, runs OpenAPI examples through it, asserts schemas — effort: L
-2. [ ] Migration runner convention: `task db:migrate` per service uses `goose` with versioned SQL under `migrations/`; one migration per logical change; down migrations mandatory — effort: M
-3. [ ] Spectral ruleset extension `api-gateway/.spectral.yaml` covering service-specific rules (e.g., every list endpoint must accept cursor + limit) — effort: S
-4. [ ] Manifest scaffold generator: `task scaffold:service NAME=foo-service` copies a template (Dockerfile, Kustomize manifests, OpenAPI stub, main.go, Taskfile) — effort: L
-5. [ ] Per-service `README.md` template with sections: Purpose, Endpoints, Events, DB, Runbook link — effort: S
-6. [ ] Integration test pattern using `task up`: docker-compose-backed black-box tests in `services/<svc>/test/integration/` run by `task test:integration` — effort: M
+1. [ ] Contract test harness: a small Go library `services/internal/contracttest/` that boots the service in-process, runs OpenAPI examples through it, asserts schemas (effort: L)
+2. [ ] Migration runner convention: `task db:migrate` per service uses `goose` with versioned SQL under `migrations/`. One migration per logical change. Down migrations mandatory (effort: M)
+3. [ ] Spectral ruleset extension `api-gateway/.spectral.yaml` covering service-specific rules (e.g., every list endpoint must accept cursor + limit) (effort: S)
+4. [ ] Manifest scaffold generator: `task scaffold:service NAME=foo-service` copies a template (Dockerfile, Kustomize manifests, OpenAPI stub, main.go, Taskfile) (effort: L)
+5. [ ] Per-service `README.md` template with sections: Purpose, Endpoints, Events, DB, Runbook link (effort: S)
+6. [ ] Integration test pattern using `task up`: docker-compose-backed black-box tests in `services/<svc>/test/integration/` run by `task test:integration` (effort: M)
 
 ## Deliverables
 
@@ -38,4 +38,4 @@ Codify the patterns every browse-path service applies on top of `pkg/*`: contrac
 
 ## Risks & Open Questions
 
-- Scaffold generator drifts from reality fast. Add a CI check that scaffolds a temp service and `task build`s it — keeps the template honest.
+- Scaffold generator drifts from reality fast. Add a CI check that scaffolds a temp service and `task build`s it. Keeps the template honest.

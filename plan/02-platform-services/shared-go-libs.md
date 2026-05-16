@@ -12,16 +12,16 @@ Every Go service must consume the same auth middleware, request-ID propagation, 
 
 ## Tasks
 
-1. [ ] `pkg/events/` — Go structs for every event (`OrderCreated`, `StockReserved`, `StockReleased`, `PaymentCompleted`, `PaymentFailed`, etc.); JSON Schema files alongside; producer/consumer helpers that validate on encode/decode — effort: L
-2. [ ] `pkg/outbox/` — generic outbox poller: takes a `*sql.DB`, a Kafka producer, polls `outbox` table for unpublished rows, publishes them, marks as published. Idempotent. Exposes Prometheus `outbox_pending_count` — effort: L
-3. [ ] `pkg/circuitbreaker/` — thin wrapper around `sony/gobreaker` with config matching design-doc §7.1 (5 failures → open, 30s timeout, 3 successes → close); exposes `circuit_breaker_state` metric — effort: M
-4. [ ] `pkg/middleware/` — Gin middlewares: `RequestID` (read or generate `X-Request-ID`), `Logger` (slog with request_id, user_id, duration_ms), `Metrics` (`http_requests_total`, `http_request_duration_seconds`), `Auth` (validate JWT against Keycloak JWKS, populate context with claims), `Recover` (panic → 500 + slog error) — effort: L
-5. [ ] `pkg/httputil/` — response envelope helpers per design-doc §8.3 (`Respond`, `RespondError`), cursor pagination helpers per §8.4 (encode/decode cursor as base64 JSON) — effort: M
-6. [ ] `pkg/httpserver/` — opinionated Gin server factory: applies all standard middleware in the right order, exposes `/healthz`, `/readyz`, `/metrics` — effort: M
-7. [ ] `pkg/db/` — sqlx wrapper, migration runner (goose), per-query context timeout (default 5s), connection pool config — effort: M
-8. [ ] `pkg/idempotency/` — `processed_events` table helper (insert-on-conflict-skip per design-doc §7.4), idempotency-key middleware for external API calls — effort: M
-9. [ ] Unit-test every package to ≥ 80% coverage — effort: L
-10. [ ] Publish a `pkg/CHANGELOG.md` and version-tag breaking changes; services pin a version — effort: S
+1. [ ] `pkg/events/`, Go structs for every event (`OrderCreated`, `StockReserved`, `StockReleased`, `PaymentCompleted`, `PaymentFailed`, etc.). JSON Schema files alongside. Producer/consumer helpers that validate on encode/decode (effort: L)
+2. [ ] `pkg/outbox/`. Generic outbox poller: takes a `*sql.DB`, a Kafka producer, polls `outbox` table for unpublished rows, publishes them, marks as published. Idempotent. Exposes Prometheus `outbox_pending_count` (effort: L)
+3. [ ] `pkg/circuitbreaker/`. Thin wrapper around `sony/gobreaker` with config matching design-doc §7.1 (5 failures → open, 30s timeout, 3 successes → close). Exposes `circuit_breaker_state` metric (effort: M)
+4. [ ] `pkg/middleware/`, Gin middlewares: `RequestID` (read or generate `X-Request-ID`), `Logger` (slog with request_id, user_id, duration_ms), `Metrics` (`http_requests_total`, `http_request_duration_seconds`), `Auth` (validate JWT against Keycloak JWKS, populate context with claims), `Recover` (panic → 500 + slog error) (effort: L)
+5. [ ] `pkg/httputil/`. Response envelope helpers per design-doc §8.3 (`Respond`, `RespondError`), cursor pagination helpers per §8.4 (encode/decode cursor as base64 JSON) (effort: M)
+6. [ ] `pkg/httpserver/`. Opinionated Gin server factory: applies all standard middleware in the right order, exposes `/healthz`, `/readyz`, `/metrics` (effort: M)
+7. [ ] `pkg/db/`. Sqlx wrapper, migration runner (goose), per-query context timeout (default 5s), connection pool config (effort: M)
+8. [ ] `pkg/idempotency/`, `processed_events` table helper (insert-on-conflict-skip per design-doc §7.4), idempotency-key middleware for external API calls (effort: M)
+9. [ ] Unit-test every package to ≥ 80% coverage (effort: L)
+10. [ ] Publish a `pkg/CHANGELOG.md` and version-tag breaking changes. Services pin a version (effort: S)
 
 ## Deliverables
 
@@ -42,5 +42,5 @@ Every Go service must consume the same auth middleware, request-ID propagation, 
 
 ## Risks & Open Questions
 
-- Versioning shared libs in a monorepo is annoying — adopt `replace` directives in `go.work` for dev, semver tags for prod. Document in `pkg/README.md`.
-- `pkg/middleware/Auth` calls Keycloak JWKS on cold start; cache aggressively (in-process, 1h TTL).
+- Versioning shared libs in a monorepo is annoying. Adopt `replace` directives in `go.work` for dev, semver tags for prod. Document in `pkg/README.md`.
+- `pkg/middleware/Auth` calls Keycloak JWKS on cold start. Cache aggressively (in-process, 1h TTL).

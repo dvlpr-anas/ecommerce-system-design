@@ -1,44 +1,44 @@
-# 01 — Foundation
+# 01: Foundation (Local)
 
 ## Goal
 
-Stand up the empty house: repo scaffolding, local dev environment, cloud infra skeleton, K8s cluster baseline, and CI/CD pipelines. No business logic yet — just the substrate every later phase builds on.
+Stand up the local developer substrate: repo scaffolding, Taskfile, docker-compose dev stack, container baseline, and a CI pipeline that lints, tests, and builds. **No cloud, no Kubernetes, and no Terraform in this phase.** All of that is deferred to phase 07.
 
 ## Scope
 
-**In scope:** monorepo layout, Taskfile, docker-compose dev stack, Terraform modules, K8s namespaces + NetworkPolicies, GitHub Actions workflows, Sealed Secrets, container baseline.
+**In scope:** monorepo layout, Taskfile, docker-compose dev stack, container baseline (distroless, non-root, read-only FS), GitHub Actions for lint, test, and build (no deploy steps).
 
-**Out of scope:** Keycloak/Kong/Postgres/Redis/Kafka configuration (that's [`../02-platform-services/`](../02-platform-services/)), any service code, any frontend code.
+**Out of scope:**
+- Cloud infrastructure, K8s cluster, Sealed Secrets (see [`../07-cloud-infrastructure/`](../07-cloud-infrastructure/))
+- Deploy workflows: push to registry, apply manifests (see [`../08-cloud-deployment/`](../08-cloud-deployment/))
+- Keycloak, Kong, Postgres, Redis, Kafka configuration (see [`../02-platform-services/`](../02-platform-services/))
+- Any service or frontend code
 
 ## Prerequisites
 
-- AWS or GCP account with billing enabled and an IAM user/SA with admin on a dev project
-- GitHub repo with Actions enabled and a ghcr.io namespace
-- `task`, `docker`, `kubectl`, `terraform`, `kubeseal` installed locally
+- `task`, `docker`, `docker compose`, and `git` installed locally
+- GitHub repo with Actions enabled (no cloud account required yet)
 
 ## Sub-files
 
-- [`monorepo-structure.md`](./monorepo-structure.md) — directory layout per design-doc §14
-- [`taskfile.md`](./taskfile.md) — Taskfile.yml mirroring design-doc §13
-- [`local-dev.md`](./local-dev.md) — `docker-compose.dev.yml` and `task up`
-- [`terraform-skeleton.md`](./terraform-skeleton.md) — VPC, EKS/GKE, RDS, MSK, IAM modules
-- [`kubernetes-baseline.md`](./kubernetes-baseline.md) — namespaces, NetworkPolicies, quotas, ingress
-- [`cicd-baseline.md`](./cicd-baseline.md) — GitHub Actions lint/test/build/push
-- [`sealed-secrets.md`](./sealed-secrets.md) — Bitnami controller + workflow
-- [`container-baseline.md`](./container-baseline.md) — distroless, non-root, read-only FS
+- [`monorepo-structure.md`](./monorepo-structure.md): directory layout per design-doc §14
+- [`taskfile.md`](./taskfile.md): Taskfile.yml mirroring design-doc §13
+- [`local-dev.md`](./local-dev.md): `docker-compose.dev.yml` and `task up`
+- [`container-baseline.md`](./container-baseline.md): distroless, non-root, read-only FS. Images are built locally and only pushed to a registry in phase 08.
+- [`cicd-baseline.md`](./cicd-baseline.md): GitHub Actions for lint, test, and build only. Deploy workflows live in phase 08.
 
 ## Phase exit criteria
 
-- [ ] `task up` boots local Postgres + Redis + Kafka + Keycloak + Kong on the host
-- [ ] `kubectl get pods -A` on the dev cluster shows ingress controller + sealed-secrets controller healthy
-- [ ] A no-op PR triggers GitHub Actions and runs lint + build green
+- [ ] `task up` boots local Postgres, Redis, Kafka, Keycloak, and Kong on the host
+- [ ] `task down` cleanly tears the stack down
+- [ ] A no-op PR triggers GitHub Actions and runs lint, test, and build green
 - [ ] Branch protection enforces required checks on `main`
-- [ ] A sample sealed secret round-trips: encrypted in git, decrypted in cluster
+- [ ] Every service Dockerfile builds successfully with `task docker:build:all` against a local Docker daemon
 
 ## Risks
 
-- Cloud account quotas can block EKS/GKE creation — request limit increases before starting Terraform.
-- Local Kafka in KRaft mode is recent; pin to a known-good version (Kafka 3.7+) in `docker-compose.dev.yml`.
+- Local Kafka in KRaft mode is recent. Pin to a known-good version (Kafka 3.7 or newer) in `docker-compose.dev.yml`.
+- Resource budget on dev laptops can be tight once all platform services plus 8 microservices are running. Document recommended Docker Desktop memory allocation (12 GB or more).
 
 ## References
 

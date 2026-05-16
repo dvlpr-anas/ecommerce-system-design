@@ -1,4 +1,4 @@
-# 05 — Frontends
+# 05: Frontends
 
 ## Goal
 
@@ -12,9 +12,9 @@ Ship the three client apps: React Native mobile (iOS + Android via Expo), Next.j
 
 ## Prerequisites
 
-- Phases 03 + 04 complete; APIs are stable enough to integrate against
+- Phases 03 + 04 complete. APIs are stable enough to integrate against
 - ADRs 008 (mobile) and 009 (web) reviewed
-- Expo account + EAS access; Apple Developer + Google Play Console accounts
+- Expo account + EAS access. Apple Developer + Google Play Console accounts
 - DNS for `www.example.com`, `admin.example.com` cut over to Cloudflare → Kong
 
 ## Sub-files
@@ -36,8 +36,8 @@ Ship the three client apps: React Native mobile (iOS + Android via Expo), Next.j
 
 ## Risks
 
-- Apple review for first submission can take 24h+; budget buffer.
-- ISR cache invalidation timing — first product page after an admin update may serve stale content briefly. Document expected behavior.
+- Apple review for first submission can take 24h+. Budget buffer.
+- ISR cache invalidation timing. First product page after an admin update may serve stale content briefly. Document expected behavior.
 
 ## References
 

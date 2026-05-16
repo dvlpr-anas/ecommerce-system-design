@@ -13,10 +13,10 @@ Auth-walled SPA for admin and support roles. No SSR (no SEO need, no public surf
 
 ## Tasks
 
-1. [ ] `admin-web/` Vite + React + TS project — effort: S
-2. [ ] React Router v6 with role-gated routes; `support` sees order ops, `admin` sees everything — effort: M
-3. [ ] OIDC PKCE: tokens in memory only (no localStorage), refresh via silent renew in iframe to Keycloak (or via HttpOnly cookie pattern like customer web — preferred) — effort: L
-4. [ ] App shell rejects render if JWT does not contain `admin` or `support` role — effort: S
+1. [ ] `admin-web/` Vite + React + TS project (effort: S)
+2. [ ] React Router v6 with role-gated routes. `support` sees order ops, `admin` sees everything (effort: M)
+3. [ ] OIDC PKCE: tokens in memory only (no localStorage), refresh via silent renew in iframe to Keycloak (or via HttpOnly cookie pattern like customer web. Preferred) (effort: L)
+4. [ ] App shell rejects render if JWT does not contain `admin` or `support` role (effort: S)
 5. [ ] Views (MVP):
    - Dashboard (orders today, revenue, top SKUs)
    - Products list / create / edit (image upload via presigned URL)
@@ -26,16 +26,16 @@ Auth-walled SPA for admin and support roles. No SSR (no SEO need, no public surf
    - Order detail (timeline of saga events, refund button for admin)
    - Users list (read-only for support, edit roles for admin)
    - Inventory restock screen
-   — effort: XL
-6. [ ] TanStack Table for data grids, TanStack Query for fetches — effort: M
-7. [ ] Strict CSP `script-src 'self'` — admin has no third-party scripts at all — effort: S
+ (effort: XL)
+6. [ ] TanStack Table for data grids, TanStack Query for fetches (effort: M)
+7. [ ] Strict CSP `script-src 'self'`. Admin has no third-party scripts at all (effort: S)
 8. [ ] Cloudflare config:
    - WAF managed rule set
    - IP allowlist (office IPs + VPN egress) where feasible
    - Stricter rate limits than customer web
-   — effort: M
-9. [ ] Build artifact: either Cloudflare Pages or nginx-unprivileged container in K8s; versioned by commit SHA in asset paths so old sessions don't break — effort: M
-10. [ ] Audit log: every admin mutation logged with `actor_user_id`, `action`, `target_id`, `before/after` snapshot. Implemented via a middleware on admin-scoped endpoints, viewable in admin UI — effort: L
+ (effort: M)
+9. [ ] Build artifact: either Cloudflare Pages or nginx-unprivileged container in K8s. Versioned by commit SHA in asset paths so old sessions don't break (effort: M)
+10. [ ] Audit log: every admin mutation logged with `actor_user_id`, `action`, `target_id`, `before/after` snapshot. Implemented via a middleware on admin-scoped endpoints, viewable in admin UI (effort: L)
 
 ## Deliverables
 
@@ -46,7 +46,7 @@ Auth-walled SPA for admin and support roles. No SSR (no SEO need, no public surf
 ## Exit Criteria
 
 - [ ] `customer` role cannot reach `admin.example.com` (Kong rejects 403)
-- [ ] Asset URLs include commit SHA; deploying does not break an open admin session mid-action
+- [ ] Asset URLs include commit SHA. Deploying does not break an open admin session mid-action
 - [ ] Every admin mutation produces an audit log entry
 - [ ] Lighthouse: 90+ on Performance + Accessibility (admin tooling is no excuse for poor a11y)
 - [ ] CSP zero violations

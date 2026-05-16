@@ -13,7 +13,7 @@ SEO-optimized storefront. SSR/ISR for `/`, `/p/[slug]`, `/c/[slug]` (Core Web Vi
 
 ## Tasks
 
-1. [ ] `web/` Next.js 14+ project, App Router, TypeScript, Tailwind, Radix Primitives — effort: M
+1. [ ] `web/` Next.js 14+ project, App Router, TypeScript, Tailwind, Radix Primitives (effort: M)
 2. [ ] Route layout per design-doc §14:
    - `(storefront)/page.tsx` (home, ISR)
    - `(storefront)/c/[slug]/page.tsx` (category, ISR)
@@ -25,19 +25,19 @@ SEO-optimized storefront. SSR/ISR for `/`, `/p/[slug]`, `/c/[slug]` (Core Web Vi
    - `api/auth/callback/route.ts` (exchanges code, sets HttpOnly cookie)
    - `api/auth/logout/route.ts`
    - `api/revalidate/route.ts` (token-protected ISR webhook target)
-   — effort: L
-3. [ ] OIDC PKCE flow in route handlers; session = signed HttpOnly cookie `__Host-sid` (encrypted JWT or opaque ID with server-side store) — effort: L
-4. [ ] SSR data-fetching: server components call backend via Kong using a server-side fetch wrapper that adds Bearer token from the cookie session — effort: M
-5. [ ] CSR data: TanStack Query + the generated client, cookie attached automatically — effort: M
-6. [ ] Strict CSP per design-doc §9.4: `script-src 'self' 'nonce-...'`, no inline, no `unsafe-eval`; Tailwind + Radix output deterministic classes — effort: M
-7. [ ] CSRF for state-changing routes: double-submit token + `Sec-Fetch-Site` enforcement at Kong (see [`../02-platform-services/kong-gateway.md`](../02-platform-services/kong-gateway.md)) — effort: M
-8. [ ] SSRF lockdown: server-side `fetch` restricted to internal Kong hostname; no user-supplied URLs ever — effort: S
-9. [ ] ISR revalidation: `/api/revalidate?path=...` accepts a token, calls `revalidatePath` — effort: M
-10. [ ] SEO: `sitemap.xml`, OpenGraph tags, JSON-LD product schema on PDPs — effort: M
-11. [ ] Cloudflare config: CDN cache rules, WAF managed rule set, rate limit on `/api/*` routes — effort: M
-12. [ ] Core Web Vitals budget: LCP < 2.5s, CLS < 0.1, INP < 200ms; performance budget in CI via Lighthouse CI — effort: M
-13. [ ] Argo Rollouts canary (5% → 25% → 100%) on deploy per design-doc §11.6 — effort: M
-14. [ ] `min_client_version` header check → soft reload prompt — effort: M
+ (effort: L)
+3. [ ] OIDC PKCE flow in route handlers. Session = signed HttpOnly cookie `__Host-sid` (encrypted JWT or opaque ID with server-side store) (effort: L)
+4. [ ] SSR data-fetching: server components call backend via Kong using a server-side fetch wrapper that adds Bearer token from the cookie session (effort: M)
+5. [ ] CSR data: TanStack Query + the generated client, cookie attached automatically (effort: M)
+6. [ ] Strict CSP per design-doc §9.4: `script-src 'self' 'nonce-...'`, no inline, no `unsafe-eval`. Tailwind + Radix output deterministic classes (effort: M)
+7. [ ] CSRF for state-changing routes: double-submit token + `Sec-Fetch-Site` enforcement at Kong (see [`../02-platform-services/kong-gateway.md`](../02-platform-services/kong-gateway.md)) (effort: M)
+8. [ ] SSRF lockdown: server-side `fetch` restricted to internal Kong hostname. No user-supplied URLs ever (effort: S)
+9. [ ] ISR revalidation: `/api/revalidate?path=...` accepts a token, calls `revalidatePath` (effort: M)
+10. [ ] SEO: `sitemap.xml`, OpenGraph tags, JSON-LD product schema on PDPs (effort: M)
+11. [ ] Cloudflare config: CDN cache rules, WAF managed rule set, rate limit on `/api/*` routes (effort: M)
+12. [ ] Core Web Vitals budget: LCP < 2.5s, CLS < 0.1, INP < 200ms. Performance budget in CI via Lighthouse CI (effort: M)
+13. [ ] Argo Rollouts canary (5% → 25% → 100%) on deploy per design-doc §11.6 (effort: M)
+14. [ ] `min_client_version` header check → soft reload prompt (effort: M)
 
 ## Deliverables
 
@@ -62,5 +62,5 @@ SEO-optimized storefront. SSR/ISR for `/`, `/p/[slug]`, `/c/[slug]` (Core Web Vi
 
 ## Risks & Open Questions
 
-- ISR + Cloudflare edge cache double-layer: revalidation invalidates Next.js ISR but not Cloudflare edge — purge Cloudflare via API on the same webhook.
+- ISR + Cloudflare edge cache double-layer: revalidation invalidates Next.js ISR but not Cloudflare edge. Purge Cloudflare via API on the same webhook.
 - Stripe Elements + strict CSP: requires `script-src https://js.stripe.com` and `frame-src https://js.stripe.com`. Document the exemptions.

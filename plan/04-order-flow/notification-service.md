@@ -2,13 +2,13 @@
 
 ## Purpose
 
-Fire-and-forget dispatcher for emails, SMS, and push (APNs + FCM). Pure Kafka consumer — no REST API, no DB. Consumes `notification.commands` and terminal-state events from order/payment topics; sends notifications via SES/SendGrid (email) and Expo push (APNs/FCM).
+Fire-and-forget dispatcher for emails, SMS, and push (APNs + FCM). Pure Kafka consumer. No REST API, no DB. Consumes `notification.commands` and terminal-state events from order/payment topics. Sends notifications via SES/SendGrid (email) and Expo push (APNs/FCM).
 
 ## Inputs / Prerequisites
 
-- Phase 02 complete; Kafka topics `notification.commands`, `order.events`, `payment.events`
+- Phase 02 complete. Kafka topics `notification.commands`, `order.events`, `payment.events`
 - Email provider (SES recommended for AWS shop) credentials in Sealed Secrets
-- Expo push token registration done in mobile app (phase 05) — service is ready in 04 but full flow lights up after 05
+- Expo push token registration done in mobile app (phase 05). Service is ready in 04 but full flow lights up after 05
 - User Service available (to look up email + push tokens by user_id)
 
 ## Tasks
@@ -16,20 +16,20 @@ Fire-and-forget dispatcher for emails, SMS, and push (APNs + FCM). Pure Kafka co
 1. [ ] Author event contracts in `pkg/events`:
    - `SendEmailCommand{to, template_id, variables}`
    - `SendPushCommand{user_id, title, body, data}`
-   — effort: S
+ (effort: S)
 2. [ ] Kafka consumers:
    - `notification.commands` → dispatch by command type
    - `payment.events` `PaymentCompleted` → send order-confirmation email
    - `payment.events` `PaymentFailed` → send payment-failure email
    - `order.events` `OrderShipped` (future) → send shipping email + push
-   — effort: L
-3. [ ] Email templating: Go `html/template` with templates in `services/notification-service/templates/`; fallback plain-text part — effort: M
-4. [ ] Push: Expo Push API client (single endpoint for APNs+FCM via Expo) — effort: M
-5. [ ] User-preference check: User Service `GET /users/{id}/notification-preferences` (defaults: email on, push on) — effort: M
-6. [ ] Idempotent dispatch: `processed_events` keyed on event_id; also dedupe outgoing emails by (event_id, channel) — effort: M
-7. [ ] Retry + DLQ: exponential backoff on transient provider errors; route to DLQ after 5 retries — effort: M
-8. [ ] Manifests, HPA on consumer lag, ServiceMonitor — effort: M
-9. [ ] Tests: golden-file tests for rendered email HTML; mocked Expo + SES clients — effort: M
+ (effort: L)
+3. [ ] Email templating: Go `html/template` with templates in `services/notification-service/templates/`. Fallback plain-text part (effort: M)
+4. [ ] Push: Expo Push API client (single endpoint for APNs+FCM via Expo) (effort: M)
+5. [ ] User-preference check: User Service `GET /users/{id}/notification-preferences` (defaults: email on, push on) (effort: M)
+6. [ ] Idempotent dispatch: `processed_events` keyed on event_id. Also dedupe outgoing emails by (event_id, channel) (effort: M)
+7. [ ] Retry + DLQ: exponential backoff on transient provider errors. Route to DLQ after 5 retries (effort: M)
+8. [ ] Manifests, HPA on consumer lag, ServiceMonitor (effort: M)
+9. [ ] Tests: golden-file tests for rendered email HTML. Mocked Expo + SES clients (effort: M)
 
 ## Deliverables
 
@@ -53,5 +53,5 @@ Fire-and-forget dispatcher for emails, SMS, and push (APNs + FCM). Pure Kafka co
 
 ## Risks & Open Questions
 
-- SES sandbox limits — request prod access well before launch.
-- Templating localization (i18n): defer to post-launch; design template files to accept a `locale` variable so the schema is forward-compatible.
+- SES sandbox limits. Request prod access well before launch.
+- Templating localization (i18n): defer to post-launch. Design template files to accept a `locale` variable so the schema is forward-compatible.

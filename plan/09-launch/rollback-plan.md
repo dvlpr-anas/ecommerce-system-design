@@ -13,22 +13,22 @@ If launch breaks, revert fast and safely. Per service, per layer (web, mobile, b
 
 ## Tasks
 
-1. [ ] **Backend rollback recipe** per service: `kubectl rollout undo deployment/<svc>` (or Argo Rollout abort + promote previous) — effort: S
-2. [ ] **Customer web rollback**: Argo Rollouts abort canary → promotes previous stable; Cloudflare cache purge — effort: S
-3. [ ] **Admin web rollback**: previous asset SHA still hosted (versioned URLs); switch entrypoint version pointer — effort: S
+1. [ ] **Backend rollback recipe** per service: `kubectl rollout undo deployment/<svc>` (or Argo Rollout abort + promote previous) (effort: S)
+2. [ ] **Customer web rollback**: Argo Rollouts abort canary → promotes previous stable. Cloudflare cache purge (effort: S)
+3. [ ] **Admin web rollback**: previous asset SHA still hosted (versioned URLs). Switch entrypoint version pointer (effort: S)
 4. [ ] **Mobile rollback**:
    - JS-only issue: `eas update --branch production --message "rollback"` republishing the previous JS bundle
-   - Native issue: cannot fast-rollback an installed binary; cope by force-upgrade screen blocking the bad version + emergency Apple/Google submission
-   — effort: M
+   - Native issue: cannot fast-rollback an installed binary. Cope by force-upgrade screen blocking the bad version + emergency Apple/Google submission
+ (effort: M)
 5. [ ] **DB rollback**:
-   - Most migrations have no safe down — accept-risk and prefer forward-fix (a new migration that corrects state)
+   - Most migrations have no safe down. Accept-risk and prefer forward-fix (a new migration that corrects state)
    - Down migrations only for additive changes (drop the added column)
    - Document explicitly in each migration's header which strategy applies
-   — effort: M
-6. [ ] **Saga rollback**: if Order Service is bad, halt new checkouts (feature flag → 503 on `POST /checkout`) and let in-flight sagas drain; existing orders unaffected — effort: M
-7. [ ] **Feature flags** for risky launches: launch behind a flag, flip off without redeploy — effort: M
-8. [ ] **Rollback drill**: in staging, deploy a deliberately-broken release, execute the rollback recipe, verify recovery time — effort: M
-9. [ ] **Comms**: status-page update, customer email if customer-impacting > 30 min, postmortem within 5 business days — effort: S
+ (effort: M)
+6. [ ] **Saga rollback**: if Order Service is bad, halt new checkouts (feature flag → 503 on `POST /checkout`) and let in-flight sagas drain. Existing orders unaffected (effort: M)
+7. [ ] **Feature flags** for risky launches: launch behind a flag, flip off without redeploy (effort: M)
+8. [ ] **Rollback drill**: in staging, deploy a deliberately-broken release, execute the rollback recipe, verify recovery time (effort: M)
+9. [ ] **Comms**: status-page update, customer email if customer-impacting > 30 min, postmortem within 5 business days (effort: S)
 
 ## Deliverables
 
@@ -50,4 +50,4 @@ If launch breaks, revert fast and safely. Per service, per layer (web, mobile, b
 
 ## Risks & Open Questions
 
-- DB rollback is the hardest. Be conservative on schema changes during launch week; postpone non-essential migrations.
+- DB rollback is the hardest. Be conservative on schema changes during launch week. Postpone non-essential migrations.

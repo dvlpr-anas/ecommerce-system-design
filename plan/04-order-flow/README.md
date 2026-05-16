@@ -1,4 +1,4 @@
-# 04 — Order Flow (Checkout Path)
+# 04: Order Flow (Checkout Path)
 
 ## Goal
 
@@ -13,7 +13,7 @@ Implement the checkout Saga end-to-end. Four services (Order, Inventory, Payment
 ## Prerequisites
 
 - Phase 02 complete (Kafka topics, `pkg/outbox`, `pkg/events`, observability)
-- Phase 03 complete OR proceeding in parallel — Order needs Cart contents on checkout
+- Phase 03 complete OR proceeding in parallel, Order needs Cart contents on checkout
 
 ## Sub-files
 
@@ -32,13 +32,13 @@ Implement the checkout Saga end-to-end. Four services (Order, Inventory, Payment
 - [ ] Happy path: `POST /orders/checkout` → order.created → inventory.reserved → payment.completed → order.confirmed → notification email sent. End-to-end < 5s p95 on dev
 - [ ] Compensation path: simulated payment failure releases reserved stock and marks order CANCELLED
 - [ ] Killing the Payment pod mid-flow eventually completes via retry or cleanly compensates (no stuck state)
-- [ ] DLQ catches a deliberately poisonous event; replay CLI re-injects after manual fix
-- [ ] Idempotent event processing — replaying any event twice does not double-charge, double-reserve, or double-confirm
+- [ ] DLQ catches a deliberately poisonous event. Replay CLI re-injects after manual fix
+- [ ] Idempotent event processing. Replaying any event twice does not double-charge, double-reserve, or double-confirm
 
 ## Risks
 
 - Saga debugging is hard. Invest in request-id propagation through events (set `correlation_id` = order_id) before scale-up.
-- External payment gateway is the slowest hop — 10s timeout (design-doc §7.3) means a checkout can take that long visible to the customer (but the 202 + async confirmation pattern decouples user-perceived latency).
+- External payment gateway is the slowest hop, 10s timeout (design-doc §7.3) means a checkout can take that long visible to the customer (but the 202 + async confirmation pattern decouples user-perceived latency).
 
 ## References
 

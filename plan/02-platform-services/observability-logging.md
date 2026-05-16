@@ -1,4 +1,4 @@
-# Observability — Logging
+# Observability, Logging
 
 ## Purpose
 
@@ -11,13 +11,13 @@ Every service emits structured JSON logs (Go `slog`) to stdout. Container runtim
 
 ## Tasks
 
-1. [ ] Install Loki via Helm into `observability` (single-binary mode for dev, distributed for prod) — effort: M
-2. [ ] Install Promtail (or Grafana Alloy) as DaemonSet to scrape container stdout — effort: M
-3. [ ] Configure log labels: `service`, `namespace`, `pod`, `request_id` (extracted from JSON) — effort: M
-4. [ ] Set retention: 7d dev, 14d staging, 30d prod — effort: S
-5. [ ] Enforce JSON log format by linting `pkg/middleware/Logger` config (no `text` handlers in prod) — effort: S
-6. [ ] Add Loki datasource to Grafana — effort: S
-7. [ ] Document a `request_id` → cross-service trace recipe in `06-hardening/runbooks.md` template — effort: S
+1. [ ] Install Loki via Helm into `observability` (single-binary mode for dev, distributed for prod) (effort: M)
+2. [ ] Install Promtail (or Grafana Alloy) as DaemonSet to scrape container stdout (effort: M)
+3. [ ] Configure log labels: `service`, `namespace`, `pod`, `request_id` (extracted from JSON) (effort: M)
+4. [ ] Set retention: 7d dev, 14d staging, 30d prod (effort: S)
+5. [ ] Enforce JSON log format by linting `pkg/middleware/Logger` config (no `text` handlers in prod) (effort: S)
+6. [ ] Add Loki datasource to Grafana (effort: S)
+7. [ ] Document a `request_id` → cross-service trace recipe in `06-hardening/runbooks.md` template (effort: S)
 
 ## Deliverables
 
@@ -39,5 +39,5 @@ Every service emits structured JSON logs (Go `slog`) to stdout. Container runtim
 
 ## Risks & Open Questions
 
-- Loki at scale needs object storage backend (S3/GCS) — single-binary FS-backed is dev-only.
-- PII in logs is a compliance risk. Add a `pkg/middleware/Logger` filter that redacts known PII keys (email, phone, address) — track as ADR if scope grows.
+- Loki at scale needs object storage backend (S3/GCS). Single-binary FS-backed is dev-only.
+- PII in logs is a compliance risk. Add a `pkg/middleware/Logger` filter that redacts known PII keys (email, phone, address). Track as ADR if scope grows.

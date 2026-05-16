@@ -11,15 +11,15 @@ Single entry point for every dev workflow. Mirrors design-doc §13 command list 
 
 ## Tasks
 
-1. [ ] Create root `Taskfile.yml` with includes for per-service Taskfiles — effort: S
-2. [ ] Add `dev:*` namespace: `dev:mobile`, `dev:mobile:ios`, `dev:mobile:android`, `dev:web`, `dev:admin-web`, `dev:user-service` (and one per service) — effort: M
-3. [ ] Add `build:*` namespace: `build:all`, `build:mobile:ios`, `build:mobile:android`, `build:web`, `build:admin-web`, `build:<service>` — effort: M
-4. [ ] Add `test:all` and `test:integration` aggregating per-service `task test` — effort: S
-5. [ ] Add `codegen:openapi` running the OpenAPI → TS client + Go server stub generator across every service spec — effort: M
-6. [ ] Add `docker:build:all` building every service image plus the Next.js image — effort: S
-7. [ ] Add `db:migrate:all` running goose migrations for every service against the local docker-compose Postgres — effort: M
-8. [ ] Add `lint:all` running `golangci-lint` on Go and `eslint` + `tsc --noEmit` on TS — effort: S
-9. [ ] Add `up` and `down` shortcuts wrapping `docker compose -f docker-compose.dev.yml up/down` (see [`local-dev.md`](./local-dev.md)) — effort: S
+1. [ ] Create root `Taskfile.yml` with includes for per-service Taskfiles (effort: S)
+2. [ ] Add `dev:*` namespace: `dev:mobile`, `dev:mobile:ios`, `dev:mobile:android`, `dev:web`, `dev:admin-web`, `dev:user-service` (and one per service) (effort: M)
+3. [ ] Add `build:*` namespace: `build:all`, `build:mobile:ios`, `build:mobile:android`, `build:web`, `build:admin-web`, `build:<service>` (effort: M)
+4. [ ] Add `test:all` and `test:integration` aggregating per-service `task test` (effort: S)
+5. [ ] Add `codegen:openapi` running the OpenAPI → TS client + Go server stub generator across every service spec (effort: M)
+6. [ ] Add `docker:build:all` building every service image plus the Next.js image (effort: S)
+7. [ ] Add `db:migrate:all` running goose migrations for every service against the local docker-compose Postgres (effort: M)
+8. [ ] Add `lint:all` running `golangci-lint` on Go and `eslint` + `tsc --noEmit` on TS (effort: S)
+9. [ ] Add `up` and `down` shortcuts wrapping `docker compose -f docker-compose.dev.yml up/down` (see [`local-dev.md`](./local-dev.md)) (effort: S)
 
 ## Deliverables
 
@@ -40,4 +40,4 @@ Single entry point for every dev workflow. Mirrors design-doc §13 command list 
 
 ## Risks & Open Questions
 
-- Long-running tasks (Expo dev server) should not block other tasks; document `task dev:mobile &` usage in root README.
+- Long-running tasks (Expo dev server) should not block other tasks. Document `task dev:mobile &` usage in root README.

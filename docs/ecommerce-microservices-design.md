@@ -375,7 +375,7 @@ sequenceDiagram
 | `admin` | All customer + support permissions + manage products, view all orders, manage promotions (admin web only) |
 | `service` | Service-to-service calls (service accounts in Keycloak) |
 
-`admin` and `support` tokens are issued by a Keycloak realm role and **rejected at the admin-web app shell** if missing. The customer mobile app and customer web app refuse to render admin views even if a privileged token is presented — admin code does not ship in customer bundles.
+`admin` and `support` tokens are issued by a Keycloak realm role and **rejected at the admin-web app shell** if missing. The customer mobile app and customer web app refuse to render admin views even if a privileged token is presented. Admin code does not ship in customer bundles.
 
 ### 9.3 Service-to-Service Authentication
 Internal REST calls between services carry a **service account JWT** obtained from Keycloak's client credentials flow. Kong validates these tokens the same way it validates user tokens, no special treatment.
@@ -386,15 +386,15 @@ Internal REST calls between services carry a **service account JWT** obtained fr
 |---|---|
 | **Input Validation** | All request bodies validated against OpenAPI schema before handler logic |
 | **SQL Injection** | Parameterized queries only (Go `database/sql` with `$1` placeholders) |
-| **Mobile Token Storage** | Tokens stored in iOS Keychain / Android Keystore via `expo-secure-store` — never in AsyncStorage |
-| **Web Token Storage** | Access/refresh tokens in **HttpOnly, Secure, SameSite=Lax cookies** issued by the Next.js auth handler — never in `localStorage`. Admin web uses the same pattern with `SameSite=Strict` and a stricter cookie domain |
+| **Mobile Token Storage** | Tokens stored in iOS Keychain / Android Keystore via `expo-secure-store`. Never in AsyncStorage |
+| **Web Token Storage** | Access/refresh tokens in **HttpOnly, Secure, SameSite=Lax cookies** issued by the Next.js auth handler. Never in `localStorage`. Admin web uses the same pattern with `SameSite=Strict` and a stricter cookie domain |
 | **Certificate Pinning** | Mobile app pins Kong's TLS leaf/intermediate to defeat on-device MITM proxies |
-| **Deep Link Hijacking** | Universal Links (iOS) + App Links (Android) only — no plain custom schemes for auth callbacks |
+| **Deep Link Hijacking** | Universal Links (iOS) + App Links (Android) only. No plain custom schemes for auth callbacks |
 | **CSRF** | Mobile uses `Authorization` header (immune). Web uses HttpOnly cookies, so all state-changing routes require a double-submit CSRF token or an `Origin`/`Sec-Fetch-Site` check at Kong |
 | **CSP / XSS** | Strict CSP on both web apps: `script-src 'self'` + nonces, no inline scripts, no `unsafe-eval`. Tailwind + Radix output deterministic class names, no runtime style injection |
-| **SSRF (Next.js SSR)** | Server-side `fetch` calls in Next.js are restricted to the internal Kong hostname; no user-supplied URLs are ever fetched from the server runtime |
-| **Rate Limiting** | Kong rate-limiting plugin per consumer + per IP; admin endpoints get a stricter bucket and IP allowlist where feasible |
-| **Secrets** | Never in env vars or code, Sealed Secrets decrypted only in K8s cluster. Mobile and customer web ship **no** server secrets — only the public Keycloak client_id for PKCE. Next.js Node runtime holds only a backend-API service token for ISR revalidation webhooks |
+| **SSRF (Next.js SSR)** | Server-side `fetch` calls in Next.js are restricted to the internal Kong hostname. No user-supplied URLs are ever fetched from the server runtime |
+| **Rate Limiting** | Kong rate-limiting plugin per consumer + per IP. Admin endpoints get a stricter bucket and IP allowlist where feasible |
+| **Secrets** | Never in env vars or code, Sealed Secrets decrypted only in K8s cluster. Mobile and customer web ship **no** server secrets. Only the public Keycloak client_id for PKCE. Next.js Node runtime holds only a backend-API service token for ISR revalidation webhooks |
 | **Transport** | TLS everywhere, Cloudflare → Kong is HTTPS, K8s internal via NetworkPolicies |
 | **Dependency Scanning** | `govulncheck` (Go) and `npm audit` (mobile + web + admin-web) in CI pipeline |
 | **Container Security** | Distroless base images, non-root containers, read-only filesystems |
@@ -488,9 +488,9 @@ The mobile app follows a separate release cadence from backend services since na
 
 - **Build:** **EAS Build** (Expo Application Services) produces signed `.ipa` (iOS) and `.aab` (Android) artifacts in CI.
 - **Channels:** `development` (local dev clients), `preview` (internal QA via TestFlight + Play Internal Testing), `production` (App Store + Play Store).
-- **JS-only updates:** Shipped via **EAS Update** (OTA) for non-native changes — bypasses store review for bug fixes and copy changes, gated by runtime version compatibility.
-- **Native updates:** Require a new store submission and review (Apple ~24h, Google ~few hours). Plan for a 1–2 day review buffer before any deadline.
-- **Backwards-compat constraint:** **API contracts must remain backward-compatible for at least N–2 mobile versions** (older app installs cannot be force-upgraded). Expand-and-Contract applies to API changes just as it does to schemas.
+- **JS-only updates:** Shipped via **EAS Update** (OTA) for non-native changes. Bypasses store review for bug fixes and copy changes, gated by runtime version compatibility.
+- **Native updates:** Require a new store submission and review (Apple ~24h, Google ~few hours). Plan for a 1-2 day review buffer before any deadline.
+- **Backwards-compat constraint:** **API contracts must remain backward-compatible for at least N,2 mobile versions** (older app installs cannot be force-upgraded). Expand-and-Contract applies to API changes just as it does to schemas.
 - **Forced upgrade:** A `/api/v1/clients/check` endpoint returns a `minimum_supported_version`. The app shows a blocking "update required" screen when its build is below it.
 
 ### 11.6 Web App Release Pipelines
@@ -498,13 +498,13 @@ Customer web and admin web ship independently and far more often than the mobile
 
 - **Customer Web (Next.js):**
   - Built in CI as a Node server image, deployed to EKS/GKE behind Cloudflare (CDN/WAF) with HPA.
-  - **ISR revalidation:** Product/Pricing services publish events; a small consumer fires `revalidatePath` / `revalidateTag` webhooks at the Next.js instance to invalidate cached storefront pages.
-  - Progressive rollout via Kubernetes `Deployment` + Argo Rollouts (canary 5% → 25% → 100%); rollback = redeploy a known-good SHA.
+  - **ISR revalidation:** Product/Pricing services publish events. A small consumer fires `revalidatePath` / `revalidateTag` webhooks at the Next.js instance to invalidate cached storefront pages.
+  - Progressive rollout via Kubernetes `Deployment` + Argo Rollouts (canary 5% → 25% → 100%). Rollback = redeploy a known-good SHA.
 - **Admin Web (Vite SPA):**
   - Built in CI as static assets, deployed to Cloudflare Pages (or Nginx in K8s).
-  - Versioned by commit SHA in the asset URL; old bundles remain available so in-flight admin sessions don't break mid-action.
+  - Versioned by commit SHA in the asset URL. Old bundles remain available so in-flight admin sessions don't break mid-action.
   - WAF rules and (where feasible) an IP allowlist gate access to `admin.example.com`.
-- **Backwards-compat constraint:** Same N–2 API rule applies. Web clients can be force-refreshed via a `min_client_version` header check from the server, which prompts the user to reload — softer than mobile's blocking screen.
+- **Backwards-compat constraint:** Same N,2 API rule applies. Web clients can be force-refreshed via a `min_client_version` header check from the server, which prompts the user to reload. Softer than mobile's blocking screen.
 
 ---
 

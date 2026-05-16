@@ -2,7 +2,7 @@
 
 Build a production-grade, event-driven e-commerce platform on Kubernetes that demonstrates Solution Architect-level thinking: justified technology trade-offs (one ADR per major decision), failure-mode design (Saga, Outbox, circuit breakers, DLQs), operational maturity (SLOs, runbooks, DR drills), and security-first architecture (OIDC + PKCE, strict CSP, expand-and-contract migrations).
 
-The platform serves three clients — a React Native mobile app (iOS + Android), a Next.js customer web storefront, and a React + Vite admin SPA — all backed by eight Go microservices behind a Kong API gateway, communicating asynchronously over Kafka and synchronously over REST.
+The platform serves three clients. A React Native mobile app (iOS + Android), a Next.js customer web storefront, and a React + Vite admin SPA. All backed by eight Go microservices behind a Kong API gateway, communicating asynchronously over Kafka and synchronously over REST.
 
 ## Target outcomes
 

@@ -18,19 +18,19 @@ Codify the client-side security posture from design-doc §9.4 so the three front
    - `connect-src` limited to Kong + Keycloak
    - `frame-ancestors 'none'` (no embedding)
    - CSP report URI to a small backend endpoint
-   — effort: M
-2. [ ] CSRF: state-changing routes use double-submit token (Next.js issues cookie + form field) + Kong enforces `Sec-Fetch-Site` / `Origin` — effort: M
-3. [ ] SSRF lockdown in Next.js: server-side `fetch` wrapper restricts target host to `KONG_INTERNAL_HOST`; rejects all other URLs — effort: S
+ (effort: M)
+2. [ ] CSRF: state-changing routes use double-submit token (Next.js issues cookie + form field) + Kong enforces `Sec-Fetch-Site` / `Origin` (effort: M)
+3. [ ] SSRF lockdown in Next.js: server-side `fetch` wrapper restricts target host to `KONG_INTERNAL_HOST`. Rejects all other URLs (effort: S)
 4. [ ] Token storage:
-   - Mobile: `expo-secure-store` only — never `AsyncStorage`
-   - Web: HttpOnly cookies — never `localStorage`/`sessionStorage`
-   - Admin: same as web; in-memory access tokens, refresh via cookie
-   Enforce via ESLint rule banning `localStorage.setItem` patterns related to auth — effort: M
-5. [ ] Certificate pinning (mobile): pin Kong's TLS leaf + intermediate. Document rotation procedure (pin both old and new during cert rotation window) — effort: M
-6. [ ] Universal Links (iOS) + App Links (Android): no custom-scheme fallback for OIDC callback; verify domain ownership via `apple-app-site-association` and `assetlinks.json` published on the web origin — effort: M
-7. [ ] Mobile jailbreak/root detection via `jail-monkey`; show a warning + restrict checkout if detected (configurable per market) — effort: M
-8. [ ] Cloudflare-level controls: bot management on customer web; strict managed rules on admin — effort: S
-9. [ ] Pen-test prep: an isolated security-scan environment running both web apps + mobile binaries (TestFlight) provided to security review in phase 06 — effort: M
+   - Mobile: `expo-secure-store` only. Never `AsyncStorage`
+   - Web: HttpOnly cookies. Never `localStorage`/`sessionStorage`
+   - Admin: same as web. In-memory access tokens, refresh via cookie
+   Enforce via ESLint rule banning `localStorage.setItem` patterns related to auth (effort: M)
+5. [ ] Certificate pinning (mobile): pin Kong's TLS leaf + intermediate. Document rotation procedure (pin both old and new during cert rotation window) (effort: M)
+6. [ ] Universal Links (iOS) + App Links (Android): no custom-scheme fallback for OIDC callback. Verify domain ownership via `apple-app-site-association` and `assetlinks.json` published on the web origin (effort: M)
+7. [ ] Mobile jailbreak/root detection via `jail-monkey`. Show a warning + restrict checkout if detected (configurable per market) (effort: M)
+8. [ ] Cloudflare-level controls: bot management on customer web. Strict managed rules on admin (effort: S)
+9. [ ] Pen-test prep: an isolated security-scan environment running both web apps + mobile binaries (TestFlight) provided to security review in phase 06 (effort: M)
 
 ## Deliverables
 
@@ -52,5 +52,5 @@ Codify the client-side security posture from design-doc §9.4 so the three front
 
 ## Risks & Open Questions
 
-- Cert pinning + outage risk: a misissued cert can brick the app. Mitigation: pin to intermediate, not leaf; ship a circuit-breaker config that disables pinning if `MIN_SUPPORTED_VERSION` bumps.
-- Bot management on customer web can false-positive legitimate users on aggressive settings; start permissive, tighten with telemetry.
+- Cert pinning + outage risk: a misissued cert can brick the app. Mitigation: pin to intermediate, not leaf. Ship a circuit-breaker config that disables pinning if `MIN_SUPPORTED_VERSION` bumps.
+- Bot management on customer web can false-positive legitimate users on aggressive settings. Start permissive, tighten with telemetry.

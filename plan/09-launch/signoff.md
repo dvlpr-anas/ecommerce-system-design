@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Explicit, dated, named approval from each stakeholder area before the rollout starts. No verbal "looks good" — write it down.
+Explicit, dated, named approval from each stakeholder area before the rollout starts. No verbal "looks good". Write it down.
 
 ## Inputs / Prerequisites
 
@@ -14,12 +14,12 @@ Fill in name + date as each stakeholder signs.
 
 | Area | Sign-off criteria | Signer | Date |
 |---|---|---|---|
-| **Engineering** | All phases 01-06 exit criteria met; load test green; rollback drill passed | | |
-| **Security** | Threat model addressed; pen test remediations closed; ASVS Level 2 pass | | |
-| **Operations / SRE** | Runbooks reviewed; on-call schedule live; alerts wired to PagerDuty; DR drill within 90 days | | |
-| **Product** | Pre-launch checklist items in scope; comms plan approved; rollout cadence agreed | | |
-| **Legal / Compliance** | ToS, privacy policy, cookie banner live; PCI scope confirmed (SAQ-A) | | |
-| **Marketing** | Launch comms scheduled; status page configured; press embargo (if any) understood | | |
+| **Engineering** | All phases 01-06 exit criteria met. Load test green. Rollback drill passed | | |
+| **Security** | Threat model addressed. Pen test remediations closed. ASVS Level 2 pass | | |
+| **Operations / SRE** | Runbooks reviewed. On-call schedule live. Alerts wired to PagerDuty. DR drill within 90 days | | |
+| **Product** | Pre-launch checklist items in scope. Comms plan approved. Rollout cadence agreed | | |
+| **Legal / Compliance** | ToS, privacy policy, cookie banner live. PCI scope confirmed (SAQ-A) | | |
+| **Marketing** | Launch comms scheduled. Status page configured. Press embargo (if any) understood | | |
 
 ## War-room
 

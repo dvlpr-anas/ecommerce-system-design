@@ -1,46 +1,44 @@
-# 06 — Hardening (Production Readiness)
+# 06: Local Hardening
 
 ## Goal
 
-Verify the platform meets production bar: security review, SLOs and alerts, load + chaos testing, DR drill, runbooks for every service. No new features — only proving what was built actually holds up.
+Harden everything that can be hardened **without a cloud cluster**: threat model the design, run security scans, baseline load against the local stack, codify the DB migration policy, and draft runbooks. Cloud-only hardening (chaos in cluster, real DR drill, SLO measurement in prod, paging alerts) is deferred to [`../08-cloud-deployment/`](../08-cloud-deployment/).
 
 ## Scope
 
-**In scope:** threat model, security scanning, SLO definition + alerting, k6 load tests, chaos scenarios, DR drill, runbook authoring, expand-and-contract migration policy.
+**In scope:** threat model, SAST plus dependency plus container scanning in CI, k6 load test driven against `docker-compose` stack, expand-and-contract DB migration policy, runbook drafts authored from local-failure experiments.
 
-**Out of scope:** new product features, new services, anything that adds risk in this window.
+**Out of scope:**
+- Chaos engineering on a real cluster (see [`../08-cloud-deployment/chaos-testing.md`](../08-cloud-deployment/chaos-testing.md))
+- DR drill against managed Postgres or Kafka (see [`../08-cloud-deployment/disaster-recovery.md`](../08-cloud-deployment/disaster-recovery.md))
+- SLO definition tied to prod telemetry (see [`../08-cloud-deployment/slos.md`](../08-cloud-deployment/slos.md))
+- Paging alert pipeline (see [`../08-cloud-deployment/alerting.md`](../08-cloud-deployment/alerting.md))
 
 ## Prerequisites
 
-- Phases 03 + 04 + 05 complete; all services deployed to staging
-- Production environment provisioned via Terraform (but empty / dark)
+- Phases 03, 04, and 05 complete. Full stack runs end-to-end on `task up`.
 
 ## Sub-files
 
 - [`threat-model.md`](./threat-model.md)
 - [`security-scanning.md`](./security-scanning.md)
-- [`slos.md`](./slos.md)
-- [`alerting.md`](./alerting.md)
-- [`load-testing.md`](./load-testing.md)
-- [`chaos-testing.md`](./chaos-testing.md)
-- [`disaster-recovery.md`](./disaster-recovery.md)
-- [`runbooks.md`](./runbooks.md)
+- [`load-testing.md`](./load-testing.md): k6 against `localhost`. Results are directional. Repeated against prod in phase 08.
+- [`runbooks.md`](./runbooks.md): draft form. Finalized after on-call review in phase 08.
 - [`db-migration-strategy.md`](./db-migration-strategy.md)
 
 ## Phase exit criteria
 
-- [ ] Threat model signed off; all HIGH/CRITICAL findings remediated or accepted with explicit owner
-- [ ] All services have SLOs + alerts; every alert links to a runbook
-- [ ] Load test sustains peak profile (10k users / 2k orders/min) within SLO
-- [ ] Chaos suite passes: pod-kill, broker-partition, DB-failover each leave the platform in a recoverable state
-- [ ] DR drill restores Postgres + Kafka within RTO; data loss within RPO
-- [ ] Every service has a runbook reviewed by on-call
+- [ ] Threat model authored. HIGH or CRITICAL findings either remediated or have an explicit owner plus deadline.
+- [ ] CI fails on HIGH or CRITICAL trivy, govulncheck, or npm audit findings
+- [ ] k6 load test runs against local stack and produces a baseline report (latency p50, p95, p99, error rate, throughput)
+- [ ] DB migration policy documented. Every service's migration tool wired up.
+- [ ] Runbook draft exists for each of the eight services
 
 ## Risks
 
-- Load testing in staging is informative but not definitive — capacity may differ in prod. Plan a shadow-traffic dry run before launch.
-- Chaos testing is dangerous — only run in a dedicated chaos environment or in staging during off-hours, with clear stop-loss.
+- Load testing on a laptop is bound by host CPU and memory. Results are directional, not predictive. Re-run against the deployed cluster in phase 08 before launch.
+- Threat model based on the design doc may miss issues that only surface in deployed config (for example, real NetworkPolicy gaps). Re-review after phase 08.
 
 ## References
 
-- Design doc: §7 Resilience, §9 Security, §10 Observability, §11.4 Rollback Plan, §12 Capacity & Scaling
+- Design doc: §7 Resilience, §9 Security, §11.4 Rollback Plan, §12 Capacity & Scaling

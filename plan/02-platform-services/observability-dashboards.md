@@ -1,4 +1,4 @@
-# Observability — Dashboards
+# Observability, Dashboards
 
 ## Purpose
 
@@ -17,22 +17,22 @@ Three default Grafana dashboards from design-doc §10.4 provisioned as code so e
    - p50 / p95 / p99 latency
    - In-flight requests
    - Circuit breaker state heatmap
-   — effort: M
+ (effort: M)
 2. [ ] Author **Kafka Health** dashboard JSON:
    - Consumer lag per group/topic
    - Throughput (msgs/sec) in + out
    - DLQ count per topic
    - Broker disk usage
-   — effort: M
+ (effort: M)
 3. [ ] Author **Infrastructure** dashboard JSON:
    - Pod CPU/memory per service
    - Postgres connection pool utilization
    - Redis memory usage + hit/miss ratio
    - Node-level resource pressure
-   — effort: M
-4. [ ] Provision dashboards via Grafana sidecar discovery: ConfigMaps labeled `grafana_dashboard=1` under `k8s-manifests/base/dashboards/` — effort: S
-5. [ ] Add a "drill-down to logs" link from each panel via the Loki datasource (`{service="$service",request_id=~".*"}`) — effort: M
-6. [ ] Define dashboard versioning: dashboards stored in Git, never edited in Grafana UI directly. Document this in a panel note — effort: S
+ (effort: M)
+4. [ ] Provision dashboards via Grafana sidecar discovery: ConfigMaps labeled `grafana_dashboard=1` under `k8s-manifests/base/dashboards/` (effort: S)
+5. [ ] Add a "drill-down to logs" link from each panel via the Loki datasource (`{service="$service",request_id=~".*"}`) (effort: M)
+6. [ ] Define dashboard versioning: dashboards stored in Git, never edited in Grafana UI directly. Document this in a panel note (effort: S)
 
 ## Deliverables
 
@@ -53,4 +53,4 @@ Three default Grafana dashboards from design-doc §10.4 provisioned as code so e
 
 ## Risks & Open Questions
 
-- Dashboards drift fast as services evolve. Add a CI check that opens `dashboard JSON` and lints panel queries against current metric names — bug-prone but valuable.
+- Dashboards drift fast as services evolve. Add a CI check that opens `dashboard JSON` and lints panel queries against current metric names. Bug-prone but valuable.

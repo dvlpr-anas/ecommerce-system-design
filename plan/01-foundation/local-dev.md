@@ -11,13 +11,13 @@ A single `task up` boots the entire backing stack locally so engineers can run a
 
 ## Tasks
 
-1. [ ] Author `docker-compose.dev.yml` at repo root with services: `postgres:16`, `redis:7`, `kafka:3.7` (KRaft mode, single broker), `keycloak:24` (dev mode, h2 backed), `kong:3.6` (DBless mode), `prometheus`, `grafana` — effort: L
-2. [ ] Add init scripts: `infra/dev/postgres-init.sql` creating per-service databases (`user_db`, `product_db`, `pricing_db`, `order_db`, `inventory_db`, `payment_db`) and a non-root role per DB — effort: M
-3. [ ] Add `infra/dev/kong.yaml` declarative config with hello-world routes — replaced fully in `02-platform-services/kong-gateway.md` — effort: S
-4. [ ] Add `infra/dev/keycloak-realm.json` minimal realm export — replaced in `02-platform-services/keycloak.md` — effort: S
-5. [ ] Add named volumes for Postgres, Kafka, Keycloak so data survives `task down` — effort: S
-6. [ ] Add healthchecks on every service so dependents wait correctly — effort: M
-7. [ ] Document required `/etc/hosts` entries (`api.local`, `auth.local`) in root README — effort: S
+1. [ ] Author `docker-compose.dev.yml` at repo root with services: `postgres:16`, `redis:7`, `kafka:3.7` (KRaft mode, single broker), `keycloak:24` (dev mode, h2 backed), `kong:3.6` (DBless mode), `prometheus`, `grafana` (effort: L)
+2. [ ] Add init scripts: `infra/dev/postgres-init.sql` creating per-service databases (`user_db`, `product_db`, `pricing_db`, `order_db`, `inventory_db`, `payment_db`) and a non-root role per DB (effort: M)
+3. [ ] Add `infra/dev/kong.yaml` declarative config with hello-world routes. Replaced fully in `02-platform-services/kong-gateway.md` (effort: S)
+4. [ ] Add `infra/dev/keycloak-realm.json` minimal realm export. Replaced in `02-platform-services/keycloak.md` (effort: S)
+5. [ ] Add named volumes for Postgres, Kafka, Keycloak so data survives `task down` (effort: S)
+6. [ ] Add healthchecks on every service so dependents wait correctly (effort: M)
+7. [ ] Document required `/etc/hosts` entries (`api.local`, `auth.local`) in root README (effort: S)
 
 ## Deliverables
 
@@ -39,5 +39,5 @@ A single `task up` boots the entire backing stack locally so engineers can run a
 
 ## Risks & Open Questions
 
-- Kafka in KRaft single-node mode for dev is fine but won't replicate prod's HA topology — flag this in `06-hardening/chaos-testing.md` so chaos tests are run against staging, not dev.
-- Keycloak dev mode is not production-safe (h2 in-memory) — this is intentional for local; prod setup lives in `02-platform-services/keycloak.md`.
+- Kafka in KRaft single-node mode for dev is fine but won't replicate prod's HA topology. Flag this in `08-cloud-deployment/chaos-testing.md` so chaos tests are run against the deployed staging cluster, not local docker-compose.
+- Keycloak dev mode is not production-safe (h2 in-memory). This is intentional for local. Prod setup lives in `02-platform-services/keycloak.md`.

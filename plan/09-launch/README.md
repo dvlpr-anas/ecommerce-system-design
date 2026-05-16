@@ -1,4 +1,4 @@
-# 07 — Launch
+# 09: Launch
 
 ## Goal
 
@@ -8,11 +8,13 @@ Ship to production with eyes open: pre-launch checklist complete, rollout plan r
 
 **In scope:** pre-launch checklist, progressive rollout, rollback procedure, sign-off, post-launch monitoring window.
 
-**Out of scope:** anything that should have been done in phase 06.
+**Out of scope:** anything that should have been done in phases 06 (local hardening) or 08 (cloud deployment + prod hardening).
 
 ## Prerequisites
 
-- Phase 06 complete (security, SLOs, load + chaos, DR, runbooks)
+- Phase 06 complete (local hardening: threat model, security scans, load baseline, runbook drafts, migration policy)
+- Phase 07 complete (cloud infra provisioned)
+- Phase 08 complete (services deployed to staging. SLOs, alerts, chaos, DR all green)
 - App Store + Play Store submissions accepted (or scheduled)
 - Marketing + legal approvals confirmed
 - Stripe in live mode with prod keys in Sealed Secrets

@@ -2,12 +2,12 @@
 
 ## Purpose
 
-A defined window of heightened attention after each ramp step. Most launches that fail, fail in the first 72 hours — invest disproportionate vigilance there.
+A defined window of heightened attention after each ramp step. Most launches that fail, fail in the first 72 hours. Invest disproportionate vigilance there.
 
 ## Inputs / Prerequisites
 
 - Launch is live (any traffic stage ≥ 1%)
-- Dashboards and alerts wired ([`../06-hardening/slos.md`](../06-hardening/slos.md), [`../06-hardening/alerting.md`](../06-hardening/alerting.md))
+- Dashboards and alerts wired ([`../08-cloud-deployment/slos.md`](../08-cloud-deployment/slos.md), [`../08-cloud-deployment/alerting.md`](../08-cloud-deployment/alerting.md))
 
 ## Tasks / Watch Windows
 
@@ -18,14 +18,14 @@ A defined window of heightened attention after each ramp step. Most launches tha
 - [ ] Manual spot-check every 30 min for first 8 hours, hourly thereafter
 - [ ] Status-page update on any anomaly
 
-### 24h–72h
+### 24h to 72h
 
 - [ ] On-call returns to normal rotation but stays in war-room channel
 - [ ] Daily standup review of SLOs, alerts fired, customer-reported issues
 - [ ] Cloudflare WAF tuning based on real traffic patterns
 - [ ] Capacity check: HPA replica counts vs. max, headroom report
 
-### 72h–7d
+### 72h to 7d
 
 - [ ] Daily SLO + error-budget review
 - [ ] First batch of customer-feedback synthesis (from support tickets, app store reviews)
@@ -60,7 +60,7 @@ flowchart TD
 ## Exit Criteria
 
 - [ ] 7-day window complete with no unresolved SEV-1
-- [ ] Retrospective held; action items filed
+- [ ] Retrospective held. Action items filed
 - [ ] On-call schedule back to normal cadence
 
 ## References
@@ -69,5 +69,5 @@ flowchart TD
 
 ## Risks & Open Questions
 
-- Fatigue after 72h is real — enforce rest breaks for on-call. Two-person war room minimum.
+- Fatigue after 72h is real. Enforce rest breaks for on-call. Two-person war room minimum.
 - Real customer behavior diverges from synthetic loads. Expect surprises and treat them as data, not failures.

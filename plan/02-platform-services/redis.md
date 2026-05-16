@@ -11,13 +11,13 @@ Volatile state store for cart sessions, rate-limit counters, and short-lived cac
 
 ## Tasks
 
-1. [ ] Provision managed Redis 7 cluster via Terraform (ElastiCache replication group or Memorystore Standard) — effort: M
-2. [ ] Configure eviction policy: `allkeys-lru` (carts are abandoned, rate-limit counters expire) — effort: S
-3. [ ] Configure max-memory and memory alerts at 80% (Prometheus alert) — effort: S
-4. [ ] Set TLS in transit + auth token; store token via Sealed Secrets — effort: S
-5. [ ] Document keyspace conventions: `cart:{user_id}` TTL 7d, `cart:anon:{cart_id}` TTL 24h, `ratelimit:{consumer}:{bucket}` TTL bucket-window — effort: S
-6. [ ] Decide on Cluster mode (sharded) vs Standalone: start **Standalone with replicas** for simpler ops; revisit if hot-key issues — effort: S
-7. [ ] Expose a smoke endpoint in cart-service health check that PINGs Redis — effort: S
+1. [ ] Provision managed Redis 7 cluster via Terraform (ElastiCache replication group or Memorystore Standard) (effort: M)
+2. [ ] Configure eviction policy: `allkeys-lru` (carts are abandoned, rate-limit counters expire) (effort: S)
+3. [ ] Configure max-memory and memory alerts at 80% (Prometheus alert) (effort: S)
+4. [ ] Set TLS in transit + auth token. Store token via Sealed Secrets (effort: S)
+5. [ ] Document keyspace conventions: `cart:{user_id}` TTL 7d, `cart:anon:{cart_id}` TTL 24h, `ratelimit:{consumer}:{bucket}` TTL bucket-window (effort: S)
+6. [ ] Decide on Cluster mode (sharded) vs Standalone: start **Standalone with replicas** for simpler ops. Revisit if hot-key issues (effort: S)
+7. [ ] Expose a smoke endpoint in cart-service health check that PINGs Redis (effort: S)
 
 ## Deliverables
 
