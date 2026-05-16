@@ -6,8 +6,9 @@ A single `task up` boots the entire backing stack locally so engineers can run a
 
 ## Inputs / Prerequisites
 
-- Docker Desktop or Colima with ≥ 8 GB RAM allocated
+- Docker Desktop or Colima with at least 8 GB RAM allocated (12 GB recommended once all services run)
 - `taskfile.md` complete (provides the `task up` shortcut)
+- A `./dev` wrapper at repo root that runs every command inside a `sol-arch-tools` container, so the host needs nothing beyond Docker (no Go, Node, pnpm, or task install required)
 
 ## Tasks
 
@@ -27,11 +28,11 @@ A single `task up` boots the entire backing stack locally so engineers can run a
 
 ## Exit Criteria
 
-- [ ] `task up` returns within 90s with all containers healthy
-- [ ] `psql -h localhost -U postgres -l` shows the six per-service databases
-- [ ] `curl http://localhost:8001` returns Kong admin response
-- [ ] `curl http://localhost:8080/realms/master` returns Keycloak realm metadata
-- [ ] `kafka-topics --bootstrap-server localhost:9092 --list` works (no topics yet, exits 0)
+- [ ] `./dev task up` returns within 90s with all containers healthy
+- [ ] `./dev psql -h postgres -U postgres -l` shows the six per-service databases
+- [ ] `./dev curl -s http://kong:8001` returns Kong admin response
+- [ ] `./dev curl -s http://keycloak:8080/realms/master` returns Keycloak realm metadata
+- [ ] `docker compose -f docker-compose.dev.yml exec kafka kafka-topics --bootstrap-server localhost:9092 --list` works (no topics yet, exits 0)
 
 ## References
 

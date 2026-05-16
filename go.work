@@ -1,0 +1,17 @@
+go 1.22
+
+use (
+	./services/user-service
+	./services/product-service
+	./services/pricing-service
+	./services/cart-service
+	./services/order-service
+	./services/inventory-service
+	./services/payment-service
+	./services/notification-service
+	./pkg/events
+	./pkg/outbox
+	./pkg/circuitbreaker
+	./pkg/middleware
+	./pkg/httputil
+)

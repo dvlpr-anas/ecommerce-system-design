@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1.7
+
+FROM node:20-alpine AS deps
+WORKDIR /app
+RUN corepack enable
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
+COPY web/package.json web/
+COPY packages/ packages/
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile || pnpm install
+
+FROM node:20-alpine AS builder
+WORKDIR /app
+RUN corepack enable
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/web/node_modules ./web/node_modules
+COPY . .
+WORKDIR /app/web
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN pnpm build
+
+FROM gcr.io/distroless/nodejs20-debian12:nonroot AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=3000
+COPY --from=builder /app/web/.next/standalone /app/
+COPY --from=builder /app/web/.next/static /app/web/.next/static
+COPY --from=builder /app/web/public /app/web/public
+USER 65532:65532
+EXPOSE 3000
+CMD ["web/server.js"]

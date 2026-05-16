@@ -16,7 +16,7 @@ Stand up the local developer substrate: repo scaffolding, Taskfile, docker-compo
 
 ## Prerequisites
 
-- `task`, `docker`, `docker compose`, and `git` installed locally
+- `docker` and `docker compose` installed locally (and `git`). No `task`, `go`, `node`, or `pnpm` on the host. The repo ships a `./dev` wrapper that runs every command inside a `sol-arch-tools` container.
 - GitHub repo with Actions enabled (no cloud account required yet)
 
 ## Sub-files

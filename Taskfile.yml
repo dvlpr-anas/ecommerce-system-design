@@ -1,0 +1,145 @@
+version: '3'
+
+# Root Taskfile. Aggregates per-package recipes and provides the design-doc §13
+# command surface. Per-service Taskfiles live under services/<svc>/Taskfile.yml
+# and are included with the "svc:<name>:" namespace.
+
+includes:
+  svc:user:               { taskfile: ./services/user-service,         dir: ./services/user-service }
+  svc:product:            { taskfile: ./services/product-service,      dir: ./services/product-service }
+  svc:pricing:            { taskfile: ./services/pricing-service,      dir: ./services/pricing-service }
+  svc:cart:               { taskfile: ./services/cart-service,         dir: ./services/cart-service }
+  svc:order:              { taskfile: ./services/order-service,        dir: ./services/order-service }
+  svc:inventory:          { taskfile: ./services/inventory-service,    dir: ./services/inventory-service }
+  svc:payment:            { taskfile: ./services/payment-service,      dir: ./services/payment-service }
+  svc:notification:       { taskfile: ./services/notification-service, dir: ./services/notification-service }
+  mobile:    { taskfile: ./mobile,    dir: ./mobile }
+  web:       { taskfile: ./web,       dir: ./web }
+  admin-web: { taskfile: ./admin-web, dir: ./admin-web }
+
+vars:
+  COMPOSE_FILE: docker-compose.dev.yml
+  SERVICES: >-
+    user-service product-service pricing-service cart-service
+    order-service inventory-service payment-service notification-service
+
+tasks:
+
+  # -------- Local dev stack --------
+  up:
+    desc: Boot local dev stack (Postgres, Redis, Kafka, Keycloak, Kong, Prom, Grafana)
+    cmds:
+      - docker compose -f {{.COMPOSE_FILE}} up -d
+      - echo "Waiting for healthchecks..."
+      - docker compose -f {{.COMPOSE_FILE}} ps
+
+  down:
+    desc: Tear down local dev stack
+    cmds:
+      - docker compose -f {{.COMPOSE_FILE}} down
+
+  logs:
+    desc: Tail logs from the dev stack
+    cmds:
+      - docker compose -f {{.COMPOSE_FILE}} logs -f
+
+  # -------- Dev (run service / frontend locally) --------
+  dev:mobile:         { desc: Start Expo dev server,         cmds: ['task mobile:dev'] }
+  dev:mobile:ios:     { desc: Run iOS simulator build,       cmds: ['task mobile:dev:ios'] }
+  dev:mobile:android: { desc: Run Android emulator build,    cmds: ['task mobile:dev:android'] }
+  dev:web:            { desc: Start Next.js storefront,      cmds: ['task web:dev'] }
+  dev:admin-web:      { desc: Start Vite admin dev server,   cmds: ['task admin-web:dev'] }
+
+  dev:user-service:         { cmds: ['task svc:user:dev'] }
+  dev:product-service:      { cmds: ['task svc:product:dev'] }
+  dev:pricing-service:      { cmds: ['task svc:pricing:dev'] }
+  dev:cart-service:         { cmds: ['task svc:cart:dev'] }
+  dev:order-service:        { cmds: ['task svc:order:dev'] }
+  dev:inventory-service:    { cmds: ['task svc:inventory:dev'] }
+  dev:payment-service:      { cmds: ['task svc:payment:dev'] }
+  dev:notification-service: { cmds: ['task svc:notification:dev'] }
+
+  # -------- Build --------
+  build:all:
+    desc: Build all services and all frontends
+    cmds:
+      - task: build:services
+      - task: build:web
+      - task: build:admin-web
+
+  build:services:
+    desc: Build every Go service binary
+    cmds:
+      - for: { var: SERVICES }
+        cmd: task svc:{{splitList "-" .ITEM | first}}:build
+
+  build:web:        { cmds: ['task web:build'] }
+  build:admin-web:  { cmds: ['task admin-web:build'] }
+  build:mobile:ios: { cmds: ['task mobile:build:ios'] }
+  build:mobile:android: { cmds: ['task mobile:build:android'] }
+
+  # -------- Tests --------
+  test:all:
+    desc: Run every test suite (Go + TS)
+    cmds:
+      - for: { var: SERVICES }
+        cmd: task svc:{{splitList "-" .ITEM | first}}:test
+      - task web:test
+      - task admin-web:test
+      - task mobile:test
+
+  test:integration:
+    desc: Run integration tests against the local dev stack
+    cmds:
+      - echo "Integration test runner is wired up in phase 04"
+
+  # -------- Lint --------
+  lint:all:
+    desc: Lint Go + TypeScript across the monorepo
+    cmds:
+      - task: lint:go
+      - task: lint:ts
+
+  lint:go:
+    desc: Run golangci-lint on every Go module
+    cmds:
+      - command -v golangci-lint >/dev/null || { echo "golangci-lint not installed, skipping"; exit 0; }
+      - for: { var: SERVICES }
+        cmd: (cd services/{{.ITEM}} && golangci-lint run ./... || true)
+
+  lint:ts:
+    desc: Run eslint + tsc --noEmit across pnpm workspace
+    cmds:
+      - command -v pnpm >/dev/null || { echo "pnpm not installed, skipping"; exit 0; }
+      - pnpm -r --if-present lint
+      - pnpm -r --if-present typecheck
+
+  # -------- Codegen --------
+  codegen:openapi:
+    desc: Regenerate TS client + Go server stubs from OpenAPI specs
+    cmds:
+      - echo "OpenAPI codegen is wired up in phase 03 (services/*/api/openapi.yaml)"
+
+  # -------- Docker --------
+  docker:build:all:
+    desc: Build every service Docker image plus the Next.js image
+    cmds:
+      - for: { var: SERVICES }
+        cmd: docker build -f services/{{.ITEM}}/Dockerfile -t {{.ITEM}}:dev .
+      - docker build -f infra/docker/Dockerfile.nextjs.template -t web:dev .
+      - docker build -f infra/docker/Dockerfile.static.template -t admin-web:dev .
+
+  # -------- DB --------
+  db:migrate:all:
+    desc: Apply goose migrations for every service against the dev Postgres
+    cmds:
+      - for: { var: SERVICES }
+        cmd: |
+          if [ -d "services/{{.ITEM}}/migrations" ] && ls services/{{.ITEM}}/migrations/*.sql >/dev/null 2>&1; then
+            DB_NAME=$(echo {{.ITEM}} | sed 's/-service//')_db
+            # postgres is the compose service hostname (resolves inside the tools container).
+            goose -dir services/{{.ITEM}}/migrations postgres \
+              "postgres://postgres:postgres@postgres:5432/$DB_NAME?sslmode=disable" up
+          else
+            echo "no migrations for {{.ITEM}} yet"
+          fi

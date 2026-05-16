@@ -1,0 +1,23 @@
+# Default owners for unmatched files
+*                       @anas
+
+# Backend services
+/services/              @anas
+/pkg/                   @anas
+
+# Frontends
+/web/                   @anas
+/admin-web/             @anas
+/mobile/                @anas
+/packages/              @anas
+
+# Infrastructure and platform
+/infra/                 @anas
+/terraform/             @anas
+/k8s-manifests/         @anas
+/api-gateway/           @anas
+/.github/               @anas
+
+# Architecture, planning, ADRs
+/docs/                  @anas
+/plan/                  @anas

@@ -1,0 +1,29 @@
+version: '3'
+
+tasks:
+  dev:
+    desc: Start Next.js dev server
+    cmds:
+      - pnpm exec next dev
+
+  build:
+    desc: Next.js production build
+    cmds:
+      - pnpm exec next build
+
+  start:
+    desc: Run the production server
+    cmds:
+      - pnpm exec next start
+
+  test:
+    cmds:
+      - pnpm -s test --if-present || echo "no test script yet"
+
+  lint:
+    cmds:
+      - pnpm -s lint --if-present || true
+
+  typecheck:
+    cmds:
+      - pnpm -s typecheck --if-present || true

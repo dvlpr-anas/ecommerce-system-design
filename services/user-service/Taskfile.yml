@@ -1,0 +1,38 @@
+version: '3'
+
+vars:
+  SERVICE: user-service
+  PORT: '8081'
+
+tasks:
+  dev:
+    desc: Run user-service locally
+    cmds:
+      - go run ./cmd
+
+  build:
+    desc: Build user-service binary
+    cmds:
+      - mkdir -p bin
+      - go build -trimpath -o bin/user-service ./cmd
+
+  test:
+    desc: Run unit tests for user-service
+    cmds:
+      - go test ./...
+
+  lint:
+    desc: Lint user-service
+    cmds:
+      - golangci-lint run ./...
+
+  docker:build:
+    desc: Build user-service Docker image
+    dir: '{{.USER_WORKING_DIR}}'
+    cmds:
+      - docker build -f services/user-service/Dockerfile -t user-service:dev .
+
+  db:migrate:
+    desc: Apply DB migrations for user-service
+    cmds:
+      - 'goose -dir migrations postgres "$DATABASE_URL" up'

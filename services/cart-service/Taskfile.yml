@@ -1,0 +1,38 @@
+version: '3'
+
+vars:
+  SERVICE: cart-service
+  PORT: '8084'
+
+tasks:
+  dev:
+    desc: Run cart-service locally
+    cmds:
+      - go run ./cmd
+
+  build:
+    desc: Build cart-service binary
+    cmds:
+      - mkdir -p bin
+      - go build -trimpath -o bin/cart-service ./cmd
+
+  test:
+    desc: Run unit tests for cart-service
+    cmds:
+      - go test ./...
+
+  lint:
+    desc: Lint cart-service
+    cmds:
+      - golangci-lint run ./...
+
+  docker:build:
+    desc: Build cart-service Docker image
+    dir: '{{.USER_WORKING_DIR}}'
+    cmds:
+      - docker build -f services/cart-service/Dockerfile -t cart-service:dev .
+
+  db:migrate:
+    desc: Apply DB migrations for cart-service
+    cmds:
+      - 'goose -dir migrations postgres "$DATABASE_URL" up'

@@ -1,0 +1,13 @@
+# DBless Kong config, dev-only.
+# Fully replaced in plan/02-platform-services/kong-gateway.md.
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: hello
+    url: http://httpbin.org
+    routes:
+      - name: hello-route
+        paths:
+          - /hello
+        strip_path: true

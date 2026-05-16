@@ -1,0 +1,38 @@
+version: '3'
+
+vars:
+  SERVICE: product-service
+  PORT: '8082'
+
+tasks:
+  dev:
+    desc: Run product-service locally
+    cmds:
+      - go run ./cmd
+
+  build:
+    desc: Build product-service binary
+    cmds:
+      - mkdir -p bin
+      - go build -trimpath -o bin/product-service ./cmd
+
+  test:
+    desc: Run unit tests for product-service
+    cmds:
+      - go test ./...
+
+  lint:
+    desc: Lint product-service
+    cmds:
+      - golangci-lint run ./...
+
+  docker:build:
+    desc: Build product-service Docker image
+    dir: '{{.USER_WORKING_DIR}}'
+    cmds:
+      - docker build -f services/product-service/Dockerfile -t product-service:dev .
+
+  db:migrate:
+    desc: Apply DB migrations for product-service
+    cmds:
+      - 'goose -dir migrations postgres "$DATABASE_URL" up'

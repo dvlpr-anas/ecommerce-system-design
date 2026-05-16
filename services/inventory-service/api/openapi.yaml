@@ -1,0 +1,14 @@
+openapi: 3.0.3
+info:
+  title: inventory-service
+  version: 0.0.1
+  description: Placeholder OpenAPI spec for inventory-service. Replaced in phase 03.
+servers:
+  - url: http://api.local
+paths:
+  /healthz:
+    get:
+      summary: Liveness probe
+      responses:
+        '200':
+          description: OK

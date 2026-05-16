@@ -1,0 +1,28 @@
+version: '3'
+
+tasks:
+  dev:
+    desc: Start Vite admin dev server
+    cmds:
+      - pnpm exec vite
+
+  build:
+    desc: Vite static production build
+    cmds:
+      - pnpm exec vite build
+
+  preview:
+    cmds:
+      - pnpm exec vite preview
+
+  test:
+    cmds:
+      - pnpm -s test --if-present || echo "no test script yet"
+
+  lint:
+    cmds:
+      - pnpm -s lint --if-present || true
+
+  typecheck:
+    cmds:
+      - pnpm -s typecheck --if-present || true

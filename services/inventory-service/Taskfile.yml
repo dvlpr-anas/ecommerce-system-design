@@ -1,0 +1,38 @@
+version: '3'
+
+vars:
+  SERVICE: inventory-service
+  PORT: '8086'
+
+tasks:
+  dev:
+    desc: Run inventory-service locally
+    cmds:
+      - go run ./cmd
+
+  build:
+    desc: Build inventory-service binary
+    cmds:
+      - mkdir -p bin
+      - go build -trimpath -o bin/inventory-service ./cmd
+
+  test:
+    desc: Run unit tests for inventory-service
+    cmds:
+      - go test ./...
+
+  lint:
+    desc: Lint inventory-service
+    cmds:
+      - golangci-lint run ./...
+
+  docker:build:
+    desc: Build inventory-service Docker image
+    dir: '{{.USER_WORKING_DIR}}'
+    cmds:
+      - docker build -f services/inventory-service/Dockerfile -t inventory-service:dev .
+
+  db:migrate:
+    desc: Apply DB migrations for inventory-service
+    cmds:
+      - 'goose -dir migrations postgres "$DATABASE_URL" up'

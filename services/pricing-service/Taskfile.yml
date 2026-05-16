@@ -1,0 +1,38 @@
+version: '3'
+
+vars:
+  SERVICE: pricing-service
+  PORT: '8083'
+
+tasks:
+  dev:
+    desc: Run pricing-service locally
+    cmds:
+      - go run ./cmd
+
+  build:
+    desc: Build pricing-service binary
+    cmds:
+      - mkdir -p bin
+      - go build -trimpath -o bin/pricing-service ./cmd
+
+  test:
+    desc: Run unit tests for pricing-service
+    cmds:
+      - go test ./...
+
+  lint:
+    desc: Lint pricing-service
+    cmds:
+      - golangci-lint run ./...
+
+  docker:build:
+    desc: Build pricing-service Docker image
+    dir: '{{.USER_WORKING_DIR}}'
+    cmds:
+      - docker build -f services/pricing-service/Dockerfile -t pricing-service:dev .
+
+  db:migrate:
+    desc: Apply DB migrations for pricing-service
+    cmds:
+      - 'goose -dir migrations postgres "$DATABASE_URL" up'

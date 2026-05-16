@@ -1,0 +1,25 @@
+# Bashrc for the sol-arch-tools container.
+
+export PS1='\[\e[36m\]sol-arch\[\e[0m\]:\[\e[33m\]\w\[\e[0m\]$ '
+export HISTFILE=/root/.bash_history
+
+alias ll='ls -lah'
+alias gs='git status'
+
+# Show a banner on interactive entry (skip when running a one-off command).
+if [ -z "${TOOLBOX_QUIET:-}" ] && [ -t 0 ] && [ -t 1 ]; then
+  cat <<'EOF'
++-------------------------------------------------------------+
+|  sol-arch toolbox                                           |
+|  No host installs needed. All commands run from inside here.|
+|                                                             |
+|  task up               boot Postgres, Redis, Kafka, etc.    |
+|  task --list           list every recipe                    |
+|  task dev:user-service run a service                        |
+|  task docker:build:all build every image                    |
+|  task down             tear the stack down                  |
+|                                                             |
+|  go, pnpm, goose, golangci-lint, govulncheck, psql all here.|
++-------------------------------------------------------------+
+EOF
+fi

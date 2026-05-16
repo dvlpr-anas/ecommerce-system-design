@@ -17,6 +17,7 @@
 *.out
 vendor/
 go.work.sum
+bin/
 
 # =========================
 # Node / React
@@ -25,10 +26,13 @@ node_modules/
 dist/
 build/
 .next/
+.turbo/
+.expo/
 *.tsbuildinfo
 .env
 .env.local
 .env.*.local
+coverage/
 
 # =========================
 # Terraform

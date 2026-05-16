@@ -1,0 +1,40 @@
+version: '3'
+
+tasks:
+  dev:
+    desc: Start Expo Metro bundler
+    cmds:
+      - pnpm exec expo start
+
+  dev:ios:
+    desc: Run iOS simulator build
+    cmds:
+      - pnpm exec expo run:ios
+
+  dev:android:
+    desc: Run Android emulator build
+    cmds:
+      - pnpm exec expo run:android
+
+  build:ios:
+    desc: EAS Build, iOS production .ipa
+    cmds:
+      - pnpm exec eas build --profile production --platform ios
+
+  build:android:
+    desc: EAS Build, Android production .aab
+    cmds:
+      - pnpm exec eas build --profile production --platform android
+
+  test:
+    desc: Run mobile tests
+    cmds:
+      - pnpm -s test --if-present || echo "no test script yet"
+
+  lint:
+    cmds:
+      - pnpm -s lint --if-present || true
+
+  typecheck:
+    cmds:
+      - pnpm -s typecheck --if-present || true

@@ -7,7 +7,7 @@ Single entry point for every dev workflow. Mirrors design-doc §13 command list 
 ## Inputs / Prerequisites
 
 - `monorepo-structure.md` complete
-- `go-task` installed locally (`brew install go-task/tap/go-task` on macOS)
+- `task` is pre-installed inside the `sol-arch-tools` container (`./dev task ...`). No host install required.
 
 ## Tasks
 

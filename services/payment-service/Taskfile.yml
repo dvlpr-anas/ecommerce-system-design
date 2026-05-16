@@ -1,0 +1,38 @@
+version: '3'
+
+vars:
+  SERVICE: payment-service
+  PORT: '8087'
+
+tasks:
+  dev:
+    desc: Run payment-service locally
+    cmds:
+      - go run ./cmd
+
+  build:
+    desc: Build payment-service binary
+    cmds:
+      - mkdir -p bin
+      - go build -trimpath -o bin/payment-service ./cmd
+
+  test:
+    desc: Run unit tests for payment-service
+    cmds:
+      - go test ./...
+
+  lint:
+    desc: Lint payment-service
+    cmds:
+      - golangci-lint run ./...
+
+  docker:build:
+    desc: Build payment-service Docker image
+    dir: '{{.USER_WORKING_DIR}}'
+    cmds:
+      - docker build -f services/payment-service/Dockerfile -t payment-service:dev .
+
+  db:migrate:
+    desc: Apply DB migrations for payment-service
+    cmds:
+      - 'goose -dir migrations postgres "$DATABASE_URL" up'

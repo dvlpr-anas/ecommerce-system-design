@@ -1,0 +1,38 @@
+version: '3'
+
+vars:
+  SERVICE: order-service
+  PORT: '8085'
+
+tasks:
+  dev:
+    desc: Run order-service locally
+    cmds:
+      - go run ./cmd
+
+  build:
+    desc: Build order-service binary
+    cmds:
+      - mkdir -p bin
+      - go build -trimpath -o bin/order-service ./cmd
+
+  test:
+    desc: Run unit tests for order-service
+    cmds:
+      - go test ./...
+
+  lint:
+    desc: Lint order-service
+    cmds:
+      - golangci-lint run ./...
+
+  docker:build:
+    desc: Build order-service Docker image
+    dir: '{{.USER_WORKING_DIR}}'
+    cmds:
+      - docker build -f services/order-service/Dockerfile -t order-service:dev .
+
+  db:migrate:
+    desc: Apply DB migrations for order-service
+    cmds:
+      - 'goose -dir migrations postgres "$DATABASE_URL" up'
