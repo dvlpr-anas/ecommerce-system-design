@@ -60,7 +60,7 @@ Delete the default labels and create these:
 | `service:pricing` | `#006b75` | Pricing Service |
 | `service:cart` | `#f9d0c4` | Cart Service |
 | `service:notification` | `#c2e0c6` | Notification Service |
-| `frontend` | `#bfd4f2` | React Frontend |
+| `mobile` | `#bfd4f2` | React Native mobile app (iOS + Android) |
 | `infra` | `#d4c5f9` | Terraform, K8s, CI/CD |
 | `api-gateway` | `#fef2c0` | Kong Configuration |
 | `shared-pkg` | `#c5def5` | Shared Go Libraries |
@@ -97,7 +97,7 @@ Create these milestones in order:
 | `M3: Event Backbone` | Kafka setup, outbox pattern, event publishing |
 | `M4: Order Saga` | Order, Inventory, Payment services with Saga choreography |
 | `M5: API Gateway + Auth` | Kong setup, Keycloak integration, RBAC |
-| `M6: Frontend` | React SPA with MUI |
+| `M6: Mobile App` | React Native (Expo) app for iOS + Android, EAS Build + EAS Update |
 | `M7: Observability` | slog, Prometheus, Grafana dashboards |
 | `M8: Infrastructure` | Terraform, K8s manifests, GitHub Actions CI/CD |
 

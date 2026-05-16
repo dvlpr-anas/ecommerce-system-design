@@ -12,7 +12,7 @@ We need a primary language for all microservices. The language must support high
 | Option | Pros | Cons |
 |---|---|---|
 | **Go (Gin)** | Goroutines for concurrency, tiny binaries (~10MB), fast startup, strong stdlib, simple deployment | Verbose error handling, no generics until recently |
-| **Node.js (Express/Fastify)** | Huge ecosystem, fast development, shared language with frontend | Single-threaded, higher memory per pod, callback complexity |
+| **Node.js (Express/Fastify)** | Huge ecosystem, fast development, shared TypeScript with the React Native mobile app | Single-threaded, higher memory per pod, callback complexity |
 | **Java (Spring Boot)** | Enterprise mature, massive ecosystem | Heavy JVM, slow cold starts, large container images (~300MB) |
 | **Rust (Actix)** | Maximum performance, memory safety | Steep learning curve, slower development velocity |
 | **Python (FastAPI)** | Excellent for prototyping, ML integration | GIL limits concurrency, slower runtime performance |

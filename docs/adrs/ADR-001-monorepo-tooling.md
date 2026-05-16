@@ -5,7 +5,7 @@
 **Decision Makers:** Solution Architect
 
 ## Context
-The project contains Go microservices, a React frontend, Terraform configs, and K8s manifests. We need a task runner that works across all languages and provides a consistent developer experience.
+The project contains Go microservices, a React Native (Expo) mobile app targeting iOS and Android, a Next.js customer web storefront, a React + Vite admin web app, Terraform configs, and K8s manifests. We need a task runner that works across all languages and frontends and provides a consistent developer experience.
 
 ## Options Considered
 
@@ -18,7 +18,7 @@ The project contains Go microservices, a React frontend, Terraform configs, and 
 | **Bazel** | Hermetic builds, massive scale | Extreme complexity, Google-scale solution for a <10 service repo |
 
 ## Decision
-**Taskfile (go-task)**, it is language-agnostic by design, uses clean YAML syntax, supports task dependencies and parallel execution, and has near-zero setup cost. It handles Go, React, Terraform, and any future language equally well.
+**Taskfile (go-task)**, it is language-agnostic by design, uses clean YAML syntax, supports task dependencies and parallel execution, and has near-zero setup cost. It handles Go, React Native (Expo / EAS Build), Next.js, Vite, Terraform, and any future language equally well.
 
 ## Consequences
 - All developers run `task <command>` regardless of the underlying language

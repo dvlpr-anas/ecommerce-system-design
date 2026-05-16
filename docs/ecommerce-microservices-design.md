@@ -15,8 +15,10 @@ This document presents a production-grade, event-driven e-commerce platform buil
 
 | Layer | Technology | Justification |
 |---|---|---|
-| **Monorepo** | Taskfile (go-task) | Language-agnostic, works for Go, React, and future services. [ADR-001](./adrs/ADR-001-monorepo-tooling.md) |
-| **Frontend** | React + TypeScript + MUI | Industry standard SPA stack with strong typing |
+| **Monorepo** | Taskfile (go-task) | Language-agnostic, works for Go, React Native, Next.js, Vite, and future services. [ADR-001](./adrs/ADR-001-monorepo-tooling.md) |
+| **Mobile App** | React Native (Expo) + TypeScript + React Native Paper | Single codebase targeting iOS and Android, native modules where needed, shared TS types with backend OpenAPI. [ADR-008](./adrs/ADR-008-mobile-platform.md) |
+| **Customer Web** | Next.js (App Router) + TypeScript + Tailwind/Radix | SSR/ISR for SEO and Core Web Vitals on storefront pages, CSR for cart/checkout, shared OpenAPI client with mobile. [ADR-009](./adrs/ADR-009-web-frontend.md) |
+| **Admin Web** | React + Vite + TypeScript + Tailwind/Radix | Auth-walled SPA for ops/admin, no SSR tax, separate deployment from customer web. [ADR-009](./adrs/ADR-009-web-frontend.md) |
 | **API Gateway** | Kong (K8s Ingress) | REST routing, JWT validation, rate-limiting. [ADR-002](./adrs/ADR-002-api-gateway.md) |
 | **Services** | Go / Gin | High performance, small binaries, strong concurrency. [ADR-003](./adrs/ADR-003-service-language.md) |
 | **Primary Database** | PostgreSQL (database-per-service) | Battle-tested ACID, full-text search, event sourcing via append-only tables. [ADR-004](./adrs/ADR-004-database-strategy.md) |
@@ -39,22 +41,36 @@ This document presents a production-grade, event-driven e-commerce platform buil
 C4Context
     title E-Commerce Platform, System Context
 
-    Person(customer, "Customer", "Browses products, places orders")
-    Person(admin, "Admin", "Manages products, views analytics")
+    Person(customer, "Customer", "Browses products, places orders on iOS/Android app or web storefront")
+    Person(admin, "Admin", "Manages products, views analytics from the admin web app")
 
     System(ecommerce, "E-Commerce Platform", "Event-driven microservices platform")
+    System(mobile, "Mobile App (iOS + Android)", "React Native (Expo) client, distributed via App Store and Play Store")
+    System(web, "Customer Web Storefront", "Next.js (App Router) with SSR/ISR for SEO and perf")
+    System(admin_web, "Admin Web App", "React + Vite SPA, admin/support roles only")
 
-    System_Ext(cloudflare, "Cloudflare", "CDN, WAF, DDoS protection")
+    System_Ext(cloudflare, "Cloudflare", "CDN, WAF, DDoS protection in front of web + API edge")
     System_Ext(payment_gw, "Payment Gateway", "Stripe / Razorpay")
     System_Ext(email, "Email Provider", "Transactional emails")
+    System_Ext(push, "Push Provider", "APNs (iOS) / FCM (Android)")
     System_Ext(keycloak, "Keycloak", "OIDC Identity Provider")
+    System_Ext(stores, "App Stores", "Apple App Store + Google Play Store")
 
-    Rel(customer, cloudflare, "HTTPS")
+    Rel(customer, mobile, "Uses")
+    Rel(customer, web, "Uses (browser)")
+    Rel(admin, admin_web, "Uses (admin/support role)")
+    Rel(mobile, cloudflare, "HTTPS (REST API)")
+    Rel(web, cloudflare, "HTTPS (SSR + API)")
+    Rel(admin_web, cloudflare, "HTTPS (REST API)")
     Rel(cloudflare, ecommerce, "HTTPS (proxied)")
-    Rel(admin, cloudflare, "HTTPS")
+    Rel(mobile, keycloak, "OIDC Authorization Code + PKCE (via in-app browser)")
+    Rel(web, keycloak, "OIDC Authorization Code + PKCE (HttpOnly cookie session)")
+    Rel(admin_web, keycloak, "OIDC Authorization Code + PKCE (role-gated)")
     Rel(ecommerce, payment_gw, "REST API")
     Rel(ecommerce, email, "SMTP / API")
-    Rel(ecommerce, keycloak, "OIDC/OAuth2")
+    Rel(ecommerce, push, "Push notifications (APNs/FCM)")
+    Rel(ecommerce, keycloak, "Token validation / service accounts")
+    Rel(stores, mobile, "OTA + binary distribution")
 ```
 
 ### 3.2 C4 Container Diagram, Internal Architecture
@@ -65,9 +81,15 @@ C4Container
 
     Person(customer, "Customer")
 
+    Container_Boundary(client, "Clients") {
+        Container(ios, "iOS App", "React Native (Expo) / TS", "Distributed via Apple App Store")
+        Container(android, "Android App", "React Native (Expo) / TS", "Distributed via Google Play Store")
+        Container(web, "Customer Web", "Next.js (App Router) / TS", "SSR/ISR storefront, CSR for cart/checkout")
+        Container(admin_web, "Admin Web", "React + Vite SPA / TS", "Auth-walled admin & support tooling")
+    }
+
     Container_Boundary(edge, "Edge") {
-        Container(cdn, "Cloudflare", "CDN/WAF", "DDoS, caching, Anycast")
-        Container(spa, "React SPA", "TypeScript, MUI", "Single Page Application")
+        Container(cdn, "Cloudflare", "CDN/WAF", "DDoS, caching, Anycast for API traffic")
         Container(kong, "Kong Gateway", "K8s Ingress", "JWT validation, rate-limiting, routing")
     }
 
@@ -79,7 +101,7 @@ C4Container
         Container(order_svc, "Order Service", "Go", "Order lifecycle, Event Sourcing, Saga")
         Container(inventory_svc, "Inventory Service", "Go", "Stock management, Event Sourcing")
         Container(payment_svc, "Payment Service", "Go", "Payment processing")
-        Container(notification_svc, "Notification Service", "Go", "Email/SMS dispatch")
+        Container(notification_svc, "Notification Service", "Go", "Email / SMS / Push (APNs + FCM) dispatch")
     }
 
     Container_Boundary(data, "Data Layer") {
@@ -93,9 +115,14 @@ C4Container
         Container(grafana, "Grafana", "Dashboards", "Metrics + logs visualization")
     }
 
-    Rel(customer, cdn, "HTTPS")
-    Rel(cdn, spa, "Static assets")
-    Rel(spa, kong, "REST API calls")
+    Rel(customer, ios, "Uses iPhone/iPad")
+    Rel(customer, android, "Uses Android device")
+    Rel(customer, web, "Uses browser")
+    Rel(ios, cdn, "HTTPS")
+    Rel(android, cdn, "HTTPS")
+    Rel(web, cdn, "HTTPS (SSR origin + browser → API)")
+    Rel(admin_web, cdn, "HTTPS")
+    Rel(cdn, kong, "REST API calls (proxied)")
     Rel(kong, user_svc, "REST")
     Rel(kong, product_svc, "REST")
     Rel(kong, cart_svc, "REST")
@@ -132,7 +159,7 @@ C4Container
 | 5 | **Order Service** | `order_db` (PG) | Order lifecycle | Event Sourcing, Saga coordinator |
 | 6 | **Inventory Service** | `inventory_db` (PG) | Stock management | Event Sourcing, Saga participant |
 | 7 | **Payment Service** | `payment_db` (PG) | Payment processing | Saga participant, idempotency keys |
-| 8 | **Notification Service** | None | Email/SMS dispatch | Kafka consumer, fire-and-forget |
+| 8 | **Notification Service** | None | Email / SMS / Push (APNs + FCM) dispatch | Kafka consumer, fire-and-forget |
 
 ### 4.2 Database-per-Service Strategy
 
@@ -162,7 +189,7 @@ One PostgreSQL cluster, **strict database-level isolation**. Services **never** 
 | `order.events` | Order Service | Inventory, Payment, Notification | Order lifecycle events |
 | `inventory.events` | Inventory Service | Order, Notification | Stock reservation/release |
 | `payment.events` | Payment Service | Order, Notification | Payment success/failure |
-| `notification.commands` | Various | Notification Service | Email/SMS dispatch commands |
+| `notification.commands` | Various | Notification Service | Email / SMS / Push (APNs + FCM) dispatch commands |
 | `*.dlq` | Kafka consumers | Ops dashboard | Dead letter queues per topic |
 
 ### 5.2 Schema Enforcement
@@ -188,7 +215,7 @@ This guarantees **atomicity** between database writes and event publishing witho
 
 ```mermaid
 sequenceDiagram
-    participant Client as React SPA
+    participant Client as Client (Mobile / Web)
     participant Kong as Kong Gateway
     participant Order as Order Service
     participant Kafka as Kafka
@@ -322,13 +349,13 @@ GET /api/v1/products?cursor=eyJpZCI6MTAwfQ&limit=25
 
 ```mermaid
 sequenceDiagram
-    participant Client as React SPA
+    participant Client as Client (Mobile / Web)
     participant KC as Keycloak
     participant Kong as Kong Gateway
     participant Svc as Microservice
 
-    Client->>KC: Login (OIDC Authorization Code + PKCE)
-    KC-->>Client: Access Token (JWT) + Refresh Token
+    Client->>KC: Login via in-app browser (OIDC Authorization Code + PKCE, expo-auth-session)
+    KC-->>Client: Access Token (JWT) + Refresh Token (stored in iOS Keychain / Android Keystore)
 
     Client->>Kong: API Request + Bearer Token
     Kong->>Kong: Validate JWT signature (Keycloak public key)
@@ -343,9 +370,12 @@ sequenceDiagram
 
 | Role | Permissions |
 |---|---|
-| `customer` | Browse products, manage own cart/orders/profile |
-| `admin` | All customer permissions + manage products, view all orders, manage promotions |
+| `customer` | Browse products, manage own cart/orders/profile (mobile + customer web) |
+| `support` | Read customer orders/profiles, issue refunds (admin web only) |
+| `admin` | All customer + support permissions + manage products, view all orders, manage promotions (admin web only) |
 | `service` | Service-to-service calls (service accounts in Keycloak) |
+
+`admin` and `support` tokens are issued by a Keycloak realm role and **rejected at the admin-web app shell** if missing. The customer mobile app and customer web app refuse to render admin views even if a privileged token is presented — admin code does not ship in customer bundles.
 
 ### 9.3 Service-to-Service Authentication
 Internal REST calls between services carry a **service account JWT** obtained from Keycloak's client credentials flow. Kong validates these tokens the same way it validates user tokens, no special treatment.
@@ -356,13 +386,19 @@ Internal REST calls between services carry a **service account JWT** obtained fr
 |---|---|
 | **Input Validation** | All request bodies validated against OpenAPI schema before handler logic |
 | **SQL Injection** | Parameterized queries only (Go `database/sql` with `$1` placeholders) |
-| **XSS** | React auto-escapes by default, CSP headers via Kong |
-| **CSRF** | Not applicable (JWT Bearer tokens, no cookies for auth) |
-| **Rate Limiting** | Kong rate-limiting plugin per consumer + per IP |
-| **Secrets** | Never in env vars or code, Sealed Secrets decrypted only in K8s cluster |
+| **Mobile Token Storage** | Tokens stored in iOS Keychain / Android Keystore via `expo-secure-store` — never in AsyncStorage |
+| **Web Token Storage** | Access/refresh tokens in **HttpOnly, Secure, SameSite=Lax cookies** issued by the Next.js auth handler — never in `localStorage`. Admin web uses the same pattern with `SameSite=Strict` and a stricter cookie domain |
+| **Certificate Pinning** | Mobile app pins Kong's TLS leaf/intermediate to defeat on-device MITM proxies |
+| **Deep Link Hijacking** | Universal Links (iOS) + App Links (Android) only — no plain custom schemes for auth callbacks |
+| **CSRF** | Mobile uses `Authorization` header (immune). Web uses HttpOnly cookies, so all state-changing routes require a double-submit CSRF token or an `Origin`/`Sec-Fetch-Site` check at Kong |
+| **CSP / XSS** | Strict CSP on both web apps: `script-src 'self'` + nonces, no inline scripts, no `unsafe-eval`. Tailwind + Radix output deterministic class names, no runtime style injection |
+| **SSRF (Next.js SSR)** | Server-side `fetch` calls in Next.js are restricted to the internal Kong hostname; no user-supplied URLs are ever fetched from the server runtime |
+| **Rate Limiting** | Kong rate-limiting plugin per consumer + per IP; admin endpoints get a stricter bucket and IP allowlist where feasible |
+| **Secrets** | Never in env vars or code, Sealed Secrets decrypted only in K8s cluster. Mobile and customer web ship **no** server secrets — only the public Keycloak client_id for PKCE. Next.js Node runtime holds only a backend-API service token for ISR revalidation webhooks |
 | **Transport** | TLS everywhere, Cloudflare → Kong is HTTPS, K8s internal via NetworkPolicies |
-| **Dependency Scanning** | `govulncheck` and `npm audit` in CI pipeline |
+| **Dependency Scanning** | `govulncheck` (Go) and `npm audit` (mobile + web + admin-web) in CI pipeline |
 | **Container Security** | Distroless base images, non-root containers, read-only filesystems |
+| **Mobile Hardening** | Jailbreak/root detection (`jail-monkey`), disable Reanimated debug builds in release, ProGuard/R8 obfuscation on Android |
 
 ---
 
@@ -447,6 +483,29 @@ flowchart LR
 - Container images are immutable and tagged with Git SHA, rollback = redeploy a known-good SHA.
 - Database rollbacks: each migration has a corresponding `down` migration.
 
+### 11.5 Mobile App Release Pipeline
+The mobile app follows a separate release cadence from backend services since native binaries must be reviewed by Apple/Google.
+
+- **Build:** **EAS Build** (Expo Application Services) produces signed `.ipa` (iOS) and `.aab` (Android) artifacts in CI.
+- **Channels:** `development` (local dev clients), `preview` (internal QA via TestFlight + Play Internal Testing), `production` (App Store + Play Store).
+- **JS-only updates:** Shipped via **EAS Update** (OTA) for non-native changes — bypasses store review for bug fixes and copy changes, gated by runtime version compatibility.
+- **Native updates:** Require a new store submission and review (Apple ~24h, Google ~few hours). Plan for a 1–2 day review buffer before any deadline.
+- **Backwards-compat constraint:** **API contracts must remain backward-compatible for at least N–2 mobile versions** (older app installs cannot be force-upgraded). Expand-and-Contract applies to API changes just as it does to schemas.
+- **Forced upgrade:** A `/api/v1/clients/check` endpoint returns a `minimum_supported_version`. The app shows a blocking "update required" screen when its build is below it.
+
+### 11.6 Web App Release Pipelines
+Customer web and admin web ship independently and far more often than the mobile app (no store review).
+
+- **Customer Web (Next.js):**
+  - Built in CI as a Node server image, deployed to EKS/GKE behind Cloudflare (CDN/WAF) with HPA.
+  - **ISR revalidation:** Product/Pricing services publish events; a small consumer fires `revalidatePath` / `revalidateTag` webhooks at the Next.js instance to invalidate cached storefront pages.
+  - Progressive rollout via Kubernetes `Deployment` + Argo Rollouts (canary 5% → 25% → 100%); rollback = redeploy a known-good SHA.
+- **Admin Web (Vite SPA):**
+  - Built in CI as static assets, deployed to Cloudflare Pages (or Nginx in K8s).
+  - Versioned by commit SHA in the asset URL; old bundles remain available so in-flight admin sessions don't break mid-action.
+  - WAF rules and (where feasible) an IP allowlist gate access to `admin.example.com`.
+- **Backwards-compat constraint:** Same N–2 API rule applies. Web clients can be force-refreshed via a `min_client_version` header check from the server, which prompts the user to reload — softer than mobile's blocking screen.
+
 ---
 
 ## 12. Capacity & Scaling Strategy
@@ -481,14 +540,23 @@ flowchart LR
 All build, test, run, and deploy tasks are managed via **Taskfile (go-task)**.
 
 ```bash
-task dev:frontend           # Start React dev server
+task dev:mobile             # Start Expo dev server (Metro bundler)
+task dev:mobile:ios         # Run iOS simulator build
+task dev:mobile:android     # Run Android emulator build
+task dev:web                # Start Next.js storefront dev server
+task dev:admin-web          # Start Vite admin dev server
 task dev:user-service       # Start user service locally
-task build:all              # Build all services
-task docker:build:all       # Build all Docker images
-task test:all               # Run all tests across all services
+task build:all              # Build all services + all frontends
+task build:mobile:ios       # EAS Build → iOS .ipa
+task build:mobile:android   # EAS Build → Android .aab
+task build:web              # Next.js production build (Node server image)
+task build:admin-web        # Vite static build (admin SPA assets)
+task codegen:openapi        # Regenerate TS client in pkg/api-client-ts from all OpenAPI specs
+task docker:build:all       # Build all Docker images (services + Next.js)
+task test:all               # Run all tests across services, mobile, web, admin-web
 task test:integration       # Run integration tests
 task db:migrate:all         # Run all database migrations
-task lint:all               # Lint Go + TypeScript
+task lint:all               # Lint Go + TypeScript (services, mobile, web, admin-web)
 ```
 
 ---
@@ -507,7 +575,9 @@ task lint:all               # Lint Go + TypeScript
 │       ├── ADR-004-database-strategy.md
 │       ├── ADR-005-event-backbone.md
 │       ├── ADR-006-cicd-strategy.md
-│       └── ADR-007-observability.md
+│       ├── ADR-007-observability.md
+│       ├── ADR-008-mobile-platform.md
+│       └── ADR-009-web-frontend.md
 ├── terraform/                  # IaC: AWS VPC, EKS, RDS, MSK
 ├── k8s-manifests/
 │   ├── base/                   # Deployments, Services, ConfigMaps, HPA
@@ -515,12 +585,16 @@ task lint:all               # Lint Go + TypeScript
 ├── .github/
 │   └── workflows/              # CI/CD pipelines
 ├── api-gateway/                # Kong configuration + rate-limit policies
-├── pkg/                        # Shared Go Libraries
+├── pkg/                        # Shared Go libraries
 │   ├── events/                 # Event structs + JSON schema validation
 │   ├── outbox/                 # Transactional outbox poller library
 │   ├── circuitbreaker/         # Circuit breaker wrapper (sony/gobreaker)
 │   ├── middleware/             # Auth, request-ID, logging, metrics middleware
 │   └── httputil/               # Standard response envelope, pagination helpers
+├── packages/                   # Shared TypeScript packages (pnpm workspace)
+│   ├── api-client-ts/          # OpenAPI-generated TS client + Zod schemas (mobile + web + admin-web)
+│   ├── ui-web/                 # Tailwind config + Radix-based primitives (web + admin-web)
+│   └── events-ts/              # TS mirrors of Go event structs (for any client SSE/WS consumer)
 ├── services/
 │   ├── user-service/
 │   │   ├── api/openapi.yaml    # OpenAPI 3.0 contract
@@ -535,12 +609,38 @@ task lint:all               # Lint Go + TypeScript
 │   ├── order-service/          # PostgreSQL (order_db, Event Sourced, Saga)
 │   ├── payment-service/        # PostgreSQL (payment_db, idempotency)
 │   └── notification-service/   # Kafka consumer, email/SMS dispatch
-└── frontend/
+├── mobile/                      # React Native (Expo) app, single codebase for iOS + Android
+│   ├── package.json
+│   ├── app.config.ts             # Expo config (bundle id, scheme, deep links, plugins)
+│   ├── eas.json                  # EAS Build profiles (development, preview, production)
+│   ├── src/
+│   │   ├── screens/              # Screen components (React Navigation routes)
+│   │   ├── components/           # Shared UI components (React Native Paper)
+│   │   ├── navigation/           # Stack/tab navigators, deep-link config
+│   │   ├── api/                  # Consumes packages/api-client-ts + TanStack Query hooks
+│   │   ├── auth/                 # expo-auth-session (OIDC PKCE) + expo-secure-store
+│   │   └── notifications/        # expo-notifications (APNs/FCM) setup
+│   ├── ios/                      # Native iOS project (Xcode), generated by Expo prebuild
+│   └── android/                  # Native Android project (Gradle), generated by Expo prebuild
+├── web/                         # Customer web storefront (Next.js App Router)
+│   ├── package.json
+│   ├── next.config.mjs           # Image domains, headers/CSP, revalidate config
+│   ├── app/                      # App Router routes (RSC + server actions)
+│   │   ├── (storefront)/         # SSG/ISR product, category, PDP routes
+│   │   ├── account/              # SSR account/order history (auth required)
+│   │   ├── cart/                 # CSR cart + checkout
+│   │   ├── api/auth/             # OIDC PKCE callback, HttpOnly cookie issuance
+│   │   └── api/revalidate/       # Webhook target for ISR invalidation from backend
+│   └── Dockerfile                # Node runtime image deployed to K8s
+└── admin-web/                   # Admin SPA (React + Vite)
     ├── package.json
+    ├── vite.config.ts
     ├── src/
-    │   ├── components/         # MUI components
-    │   └── api/                # Axios REST client + OpenAPI types
-    └── Dockerfile
+    │   ├── routes/               # React Router v6 admin/support views
+    │   ├── components/           # Data grids (TanStack Table), forms, dashboards
+    │   ├── api/                  # Consumes packages/api-client-ts + TanStack Query hooks
+    │   └── auth/                 # OIDC PKCE, role-gating (admin/support)
+    └── nginx.conf                # Static asset serving (when not on Cloudflare Pages)
 ```
 
 ---
