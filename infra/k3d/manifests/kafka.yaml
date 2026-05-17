@@ -1,0 +1,73 @@
+# Dev Kafka - KRaft single-node, same image+config as the compose stack.
+# Dual listeners so both in-cluster pods (kafka:9092) and host tools using a
+# port-forward (localhost:29092) can connect.
+# Promotion path for phase 07: Strimzi operator.
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  labels: { app: kafka, tier: infra }
+spec:
+  selector: { app: kafka }
+  ports:
+    - { name: client,     port: 9092,  targetPort: 9092 }
+    - { name: client-ext, port: 29092, targetPort: 29092 }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+spec:
+  serviceName: kafka
+  replicas: 1
+  selector:
+    matchLabels: { app: kafka }
+  template:
+    metadata:
+      labels: { app: kafka, tier: infra }
+    spec:
+      # cp-kafka's entrypoint reads KAFKA_* env vars; k8s auto-injects names
+      # like KAFKA_PORT from the kafka Service which collides. Disabling
+      # service links keeps the env clean.
+      enableServiceLinks: false
+      containers:
+        - name: kafka
+          image: confluentinc/cp-kafka:7.6.1
+          ports:
+            - { name: client,     containerPort: 9092 }
+            - { name: client-ext, containerPort: 29092 }
+            - { name: controller, containerPort: 9093 }
+          env:
+            - { name: KAFKA_NODE_ID,                                value: "1" }
+            - { name: KAFKA_PROCESS_ROLES,                          value: "broker,controller" }
+            - { name: KAFKA_LISTENERS,                              value: "PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093" }
+            - { name: KAFKA_ADVERTISED_LISTENERS,                   value: "PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092" }
+            - { name: KAFKA_CONTROLLER_LISTENER_NAMES,              value: "CONTROLLER" }
+            - { name: KAFKA_CONTROLLER_QUORUM_VOTERS,               value: "1@localhost:9093" }
+            - { name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP,         value: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT" }
+            - { name: KAFKA_INTER_BROKER_LISTENER_NAME,             value: "PLAINTEXT" }
+            - { name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR,       value: "1" }
+            - { name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR, value: "1" }
+            - { name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR,          value: "1" }
+            - { name: KAFKA_AUTO_CREATE_TOPICS_ENABLE,              value: "true" }
+            - { name: CLUSTER_ID,                                   value: "MkU3OEVBNTcwNTJENDM2Qk" }
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/kafka/data }
+          # TCP probes - kafka-topics --list starts a JVM client per probe and
+          # routinely exceeds 5s, causing false negatives. The broker only
+          # accepts connections on 9092 once it has fully registered with the
+          # controller and transitioned to RUNNING, so a TCP check is sound.
+          readinessProbe:
+            tcpSocket: { port: 9092 }
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+          livenessProbe:
+            tcpSocket: { port: 9092 }
+            initialDelaySeconds: 30
+            periodSeconds: 15
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: { requests: { storage: 4Gi } }

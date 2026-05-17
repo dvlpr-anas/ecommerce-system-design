@@ -1,9 +1,13 @@
 # Local dev stack for sol_arch_proj.
 # Boots Postgres, Redis, Kafka (KRaft single-node), Keycloak (dev), Kong (DBless),
-# Prometheus, Grafana. Backed by named volumes so state survives "task down".
+# Prometheus, Grafana. Backed by named volumes so state survives "down".
 #
-# Bring up with: task up
-# Tear down with: task down
+# Profiles:
+#   default       - infra only (postgres, redis, kafka, keycloak, kong)
+#   observability - prometheus + grafana
+#
+# Bring up:  docker compose -f docker-compose.dev.yml --profile observability up -d
+# Tear down: docker compose -f docker-compose.dev.yml down
 
 name: sol-arch-dev
 
@@ -44,20 +48,26 @@ services:
       timeout: 3s
       retries: 10
 
+  # Dual listeners:
+  #   PLAINTEXT      kafka:9092       - reachable from inside the compose network
+  #   PLAINTEXT_HOST localhost:29092  - reachable from the host
+  # A single advertised listener of localhost:9092 only works from inside the
+  # kafka container itself; other containers and host processes cannot connect.
+  # Two listeners is the standard pattern for compose-based Kafka dev stacks.
   kafka:
     image: confluentinc/cp-kafka:7.6.1
     <<: *restart
     ports:
       - "9092:9092"
-      - "9093:9093"
+      - "29092:29092"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -96,6 +106,9 @@ services:
   kong:
     image: kong:3.6
     <<: *restart
+    depends_on:
+      keycloak:
+        condition: service_healthy
     environment:
       KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: /kong/kong.yaml
@@ -119,6 +132,7 @@ services:
   prometheus:
     image: prom/prometheus:v2.52.0
     <<: *restart
+    profiles: ["observability"]
     ports:
       - "9090:9090"
     volumes:
@@ -128,6 +142,9 @@ services:
   grafana:
     image: grafana/grafana:11.0.0
     <<: *restart
+    profiles: ["observability"]
+    depends_on:
+      - prometheus
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin

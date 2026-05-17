@@ -1,0 +1,65 @@
+{
+  "name": "sol-arch",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "moby": false,
+      "installDockerComposeSwitch": true
+    },
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": false
+    }
+  },
+
+  "mounts": [
+    "source=sol-arch-mise-data,target=/home/vscode/.local/share/mise,type=volume",
+    "source=sol-arch-mise-cache,target=/home/vscode/.cache/mise,type=volume",
+    "source=sol-arch-pnpm-store,target=/home/vscode/.local/share/pnpm,type=volume",
+    "source=sol-arch-go-mod,target=/go/pkg/mod,type=volume",
+    "source=sol-arch-go-build,target=/home/vscode/.cache/go-build,type=volume",
+    "source=sol-arch-bash-history,target=/commandhistory,type=volume",
+    "source=sol-arch-kube,target=/home/vscode/.kube,type=volume"
+  ],
+
+  "onCreateCommand": ".devcontainer/install-mise.sh",
+  "postCreateCommand": "bash -lc 'mise trust && mise install && (pnpm install --frozen-lockfile || pnpm install)'",
+
+  "remoteEnv": {
+    "HISTFILE": "/commandhistory/.bash_history",
+    "PROMPT_COMMAND": "history -a",
+    "MISE_DATA_DIR": "/home/vscode/.local/share/mise",
+    "MISE_CACHE_DIR": "/home/vscode/.cache/mise"
+  },
+
+  "forwardPorts": [
+    10350, 8000, 8001, 8080, 3001, 9090,
+    5432, 6379, 9092, 29092,
+    8081, 8082, 8083, 8084, 8085, 8086, 8087, 8088
+  ],
+
+  "portsAttributes": {
+    "10350": { "label": "Tilt UI" },
+    "8000":  { "label": "Kong proxy" },
+    "8080":  { "label": "Keycloak" },
+    "3001":  { "label": "Grafana" },
+    "9090":  { "label": "Prometheus" }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "tilt-dev.tiltfile",
+        "redhat.vscode-yaml",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "hashicorp.terraform"
+      ]
+    }
+  },
+
+  "remoteUser": "vscode"
+}

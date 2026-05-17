@@ -1,0 +1,27 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: sol-arch
+servers: 1
+agents: 2
+ports:
+  - port: "8000:80"
+    nodeFilters: [loadbalancer]    # Kong / ingress
+  - port: "8080:8080"
+    nodeFilters: [loadbalancer]    # Keycloak
+  - port: "3001:3001"
+    nodeFilters: [loadbalancer]    # Grafana
+  - port: "9090:9090"
+    nodeFilters: [loadbalancer]    # Prometheus
+registries:
+  create:
+    name: sol-arch-registry
+    host: "0.0.0.0"
+    hostPort: "5005"
+options:
+  k3d:
+    wait: true
+    timeout: "120s"
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    switchCurrentContext: true

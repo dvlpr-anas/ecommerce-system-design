@@ -1,0 +1,56 @@
+# Dev Postgres. Same image as the compose stack; init scripts come from the
+# postgres-init ConfigMap (projected from infra/dev/postgres-init.sql by Tilt).
+# Promotion path for phase 07: CloudNativePG operator.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels: { app: postgres, tier: infra }
+spec:
+  selector: { app: postgres }
+  ports:
+    - { name: postgres, port: 5432, targetPort: 5432 }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels: { app: postgres }
+  template:
+    metadata:
+      labels: { app: postgres, tier: infra }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - { name: postgres, containerPort: 5432 }
+          env:
+            - { name: POSTGRES_USER,     value: postgres }
+            - { name: POSTGRES_PASSWORD, value: postgres }
+            - { name: POSTGRES_DB,       value: postgres }
+            - { name: PGDATA,            value: /var/lib/postgresql/data/pgdata }
+          volumeMounts:
+            - { name: data,    mountPath: /var/lib/postgresql/data }
+            - { name: initdb,  mountPath: /docker-entrypoint-initdb.d, readOnly: true }
+          readinessProbe:
+            exec: { command: ["pg_isready", "-U", "postgres"] }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            exec: { command: ["pg_isready", "-U", "postgres"] }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+      volumes:
+        - name: initdb
+          configMap:
+            name: postgres-init
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: { requests: { storage: 4Gi } }

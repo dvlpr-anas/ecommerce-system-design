@@ -35,4 +35,9 @@ tasks:
   db:migrate:
     desc: Apply DB migrations for pricing-service
     cmds:
-      - 'goose -dir migrations postgres "$DATABASE_URL" up'
+      - |
+        if ls migrations/*.sql >/dev/null 2>&1; then
+          goose -dir migrations postgres "$PRICING_DATABASE_URL" up
+        else
+          echo "no migrations for pricing-service yet, skipping"
+        fi

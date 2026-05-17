@@ -1,0 +1,26 @@
+# Shared air config for running a Go service standalone outside Tilt.
+# Usage from a service dir: `air -c ../../infra/dev/air.toml`
+#
+# Tilt's live_update + restart_process is the canonical inner loop; this is
+# a convenience for ad-hoc one-service debugging without spinning up the
+# whole stack.
+
+root = "."
+tmp_dir = ".air"
+
+[build]
+  cmd = "go build -o .air/bin ./cmd"
+  bin = ".air/bin"
+  include_ext = ["go", "tpl", "tmpl", "html", "yaml", "yml"]
+  exclude_dir = [".air", "migrations", "api"]
+  delay = 200
+  stop_on_error = true
+
+[log]
+  time = false
+
+[color]
+  main    = "magenta"
+  watcher = "cyan"
+  build   = "yellow"
+  runner  = "green"

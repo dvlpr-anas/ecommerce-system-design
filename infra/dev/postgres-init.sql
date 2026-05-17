@@ -15,3 +15,8 @@ CREATE DATABASE pricing_db   OWNER pricing_svc;
 CREATE DATABASE order_db     OWNER order_svc;
 CREATE DATABASE inventory_db OWNER inventory_svc;
 CREATE DATABASE payment_db   OWNER payment_svc;
+
+-- Keycloak owns its own DB. Bitnami chart connects as the postgres superuser
+-- (see infra/k3d/keycloak-values.yaml externalDatabase block), so no separate
+-- role is needed for dev.
+CREATE DATABASE keycloak;

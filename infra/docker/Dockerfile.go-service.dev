@@ -1,0 +1,34 @@
+# syntax=docker/dockerfile:1.7
+#
+# Dev image for Go services. Tilt builds this once per service then uses
+# live_update to sync source and recompile inside the running container,
+# avoiding image rebuilds on every edit.
+#
+# Build args:
+#   SERVICE  - service folder name, e.g. user-service
+#
+# Tilt entrypoint: /app/<service>  (recompiled on every sync)
+
+FROM golang:1.22-bookworm
+
+ARG SERVICE
+ENV SERVICE=${SERVICE}
+ENV CGO_ENABLED=0
+# Image builds always use the service's own go.mod, never go.work. go.work
+# exists for cross-service IDE/local work; it would force every per-service
+# image to carry all eight service trees, which is wrong.
+ENV GOWORK=off
+
+WORKDIR /src
+
+COPY pkg/ pkg/
+COPY services/${SERVICE}/ services/${SERVICE}/
+
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    cd services/${SERVICE} && go build -o /app/${SERVICE} ./cmd
+
+# Tilt's restart_process wrapper writes here; the binary path must match
+# the entrypoint configured in Tiltfile.
+WORKDIR /app
+ENTRYPOINT ["/bin/sh", "-c", "exec /app/${SERVICE}"]

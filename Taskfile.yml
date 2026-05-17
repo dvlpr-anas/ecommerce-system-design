@@ -1,5 +1,7 @@
 version: '3'
 
+dotenv: ['infra/dev/.env.dev']
+
 # Root Taskfile. Aggregates per-package recipes and provides the design-doc §13
 # command surface. Per-service Taskfiles live under services/<svc>/Taskfile.yml
 # and are included with the "svc:<name>:" namespace.
@@ -27,11 +29,46 @@ tasks:
 
   # -------- Local dev stack --------
   up:
-    desc: Boot local dev stack (Postgres, Redis, Kafka, Keycloak, Kong, Prom, Grafana)
+    desc: Boot local dev stack (infra + observability), wait for healthy, print endpoints
     cmds:
-      - docker compose -f {{.COMPOSE_FILE}} up -d
-      - echo "Waiting for healthchecks..."
-      - docker compose -f {{.COMPOSE_FILE}} ps
+      - docker compose -f {{.COMPOSE_FILE}} --profile observability up -d
+      - task: wait
+      - task: endpoints
+
+  wait:
+    desc: Block until every dev-stack container reports healthy
+    cmds:
+      - |
+        echo "Waiting for healthchecks..."
+        deadline=$(( $(date +%s) + 180 ))
+        while :; do
+          unhealthy=$(docker compose -f {{.COMPOSE_FILE}} ps --format '{{`{{.Name}} {{.Health}}`}}' \
+            | awk '$2 != "" && $2 != "healthy" { print $1 }')
+          [ -z "$unhealthy" ] && { echo "all healthy"; break; }
+          [ $(date +%s) -ge $deadline ] && { echo "timeout, still unhealthy: $unhealthy" >&2; exit 1; }
+          sleep 2
+        done
+
+  endpoints:
+    desc: Print the URLs every running dev-stack component exposes
+    silent: true
+    cmds:
+      - |
+        cat <<'EOF'
+
+        ┌─────────────┬────────────────────────────────┐
+        │ Service     │ URL                            │
+        ├─────────────┼────────────────────────────────┤
+        │ Kong proxy  │ http://localhost:8000          │
+        │ Kong admin  │ http://localhost:8001          │
+        │ Keycloak    │ http://localhost:8080  admin/admin │
+        │ Postgres    │ postgres://postgres:postgres@localhost:5432 │
+        │ Redis       │ redis://localhost:6379         │
+        │ Kafka (host)│ localhost:29092                │
+        │ Prometheus  │ http://localhost:9090          │
+        │ Grafana     │ http://localhost:3001  admin/admin │
+        └─────────────┴────────────────────────────────┘
+        EOF
 
   down:
     desc: Tear down local dev stack
@@ -42,6 +79,11 @@ tasks:
     desc: Tail logs from the dev stack
     cmds:
       - docker compose -f {{.COMPOSE_FILE}} logs -f
+
+  logs:infra:
+    desc: Tail logs from infra only (postgres, redis, kafka, keycloak, kong)
+    cmds:
+      - docker compose -f {{.COMPOSE_FILE}} logs -f postgres redis kafka keycloak kong
 
   # -------- Dev (run service / frontend locally) --------
   dev:mobile:         { desc: Start Expo dev server,         cmds: ['task mobile:dev'] }
@@ -130,16 +172,15 @@ tasks:
       - docker build -f infra/docker/Dockerfile.static.template -t admin-web:dev .
 
   # -------- DB --------
+  # Each service that owns a DB exposes its DSN as <SVC>_DATABASE_URL in
+  # infra/dev/.env.dev. cart-service (Redis-only) and notification-service
+  # (stateless) intentionally have no DSN.
   db:migrate:all:
-    desc: Apply goose migrations for every service against the dev Postgres
+    desc: Apply goose migrations for every stateful service
     cmds:
-      - for: { var: SERVICES }
-        cmd: |
-          if [ -d "services/{{.ITEM}}/migrations" ] && ls services/{{.ITEM}}/migrations/*.sql >/dev/null 2>&1; then
-            DB_NAME=$(echo {{.ITEM}} | sed 's/-service//')_db
-            # postgres is the compose service hostname (resolves inside the tools container).
-            goose -dir services/{{.ITEM}}/migrations postgres \
-              "postgres://postgres:postgres@postgres:5432/$DB_NAME?sslmode=disable" up
-          else
-            echo "no migrations for {{.ITEM}} yet"
-          fi
+      - task: svc:user:db:migrate
+      - task: svc:product:db:migrate
+      - task: svc:pricing:db:migrate
+      - task: svc:order:db:migrate
+      - task: svc:inventory:db:migrate
+      - task: svc:payment:db:migrate
